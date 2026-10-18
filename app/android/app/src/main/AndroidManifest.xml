@@ -1,0 +1,188 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <!-- VPN Permissions -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- Direct "ignore battery optimizations?" dialog (drawn by the OS).
+         Without it the intent throws SecurityException and the drawer item
+         can only open the list screen — never the one-tap dialog. -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+    <!-- SIM enumeration for the APN settings screen was here (READ_PHONE_STATE).
+         Removed for Play's phone-permission policy (not a core use case for a
+         VPN): MainActivity now falls straight through to the general settings
+         chain on every device (see openSimSettingsSmart). -->
+    <!-- Enumerate installed apps for the split-tunnel picker (Android 11+ package visibility).
+         REQUIRED: the picker lists user-installed non-launchable apps too, which
+         <queries> intent-matching cannot express. Play Console requires the
+         "App management tools / split tunneling" package-visibility justification. -->
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
+        tools:ignore="QueryAllPackagesPermission" />
+    <!-- The system settings app: launch visibility for the network-settings
+         intents (harmless belt-and-braces; QUERY_ALL_PACKAGES already covers
+         it, this keeps the intent filters explicit for OEM forks). -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+        <intent>
+            <action android:name="android.settings.APN_SETTINGS" />
+        </intent>
+        <intent>
+            <action android:name="android.settings.MOBILE_NETWORK_SETTINGS" />
+        </intent>
+        <intent>
+            <action android:name="android.settings.NETWORK_OPERATOR_SETTINGS" />
+        </intent>
+    </queries>
+
+    <application
+        android:label="Arman Tunnel"
+        android:name="${applicationName}"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:allowBackup="false"
+        android:networkSecurityConfig="@xml/network_security_config">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:theme="@style/LaunchTheme"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+            android:hardwareAccelerated="true"
+            android:windowSoftInputMode="adjustResize">
+            <meta-data
+                android:name="io.flutter.embedding.android.NormalTheme"
+                android:resource="@style/NormalTheme" />
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!-- vless:// URI scheme -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="vless" />
+            </intent-filter>
+
+            <!-- vmess:// URI scheme -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="vmess" />
+            </intent-filter>
+
+            <!-- darktunnel:// URI scheme -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="darktunnel" />
+            </intent-filter>
+
+            <!-- trojan:// URI scheme -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="trojan" />
+            </intent-filter>
+
+            <!-- ss:// URI scheme -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="ss" />
+            </intent-filter>
+
+            <!-- Config files: .st / .txt / .cfg shared or tapped in a file
+                 manager must offer SenseiTunnel. content:// carries a MIME
+                 type (text/plain or octet-stream for unknown extensions);
+                 file:// needs the extension pattern for .st. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="content" />
+                <data android:scheme="file" />
+                <data android:mimeType="text/plain" />
+                <data android:mimeType="application/octet-stream" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="file" />
+                <data android:host="*" />
+                <data android:pathPattern=".*\\.st" />
+            </intent-filter>
+
+            <!-- "Share to SenseiTunnel": chat apps sharing config text -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity>
+
+        <!-- VPN Service -->
+        <service
+            android:name=".SenseiTunnelVpnService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse"
+            android:permission="android.permission.BIND_VPN_SERVICE">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="vpn" />
+            <intent-filter>
+                <action android:name="android.net.VpnService" />
+            </intent-filter>
+        </service>
+
+        <meta-data
+            android:name="flutterEmbedding"
+            android:value="2" />
+
+        <!-- Old-GPU safety net: the Flutter 3.29+ engines render with
+             Impeller by default, which hard-crashes / white-screens on old
+             Mali & Adreno drivers (the 260/320/400 dpi legacy-phone class
+             that reported "crashes after the update"). Fall back to the
+             battle-tested Skia pipeline. Engines that have dropped the flag
+             simply ignore this entry. -->
+        <meta-data
+            android:name="io.flutter.embedding.android.DisableImpeller"
+            android:value="true" />
+
+        <!-- AdMob's MobileAdsInitProvider self-initializes the Google Mobile
+             Ads SDK at PROCESS START — before any Dart runs, so ErrorCapture
+             can't see it — and on old devices (missing/outdated Play services,
+             low RAM) that eager init is the classic "app dies right after the
+             update" startup crash. Ads are deliberately OFF (AdConfig
+             .adsEnabled=false), so strip the auto-init: nothing loads the SDK
+             until Dart calls MobileAds.initialize(). When ads flip ON, keep
+             this removal — the Dart init is what prepares the SDK, and the
+             APPLICATION_ID metadata below still answers it. -->
+        <provider
+            android:name="com.google.android.gms.ads.MobileAdsInitProvider"
+            android:authorities="${applicationId}.com.google.android.gms.ads.MobileAdsInitProvider"
+            android:exported="false"
+            tools:node="remove" />
+
+        <!-- AdMob App ID. Must match AdConfig.appId in
+             lib/services/ad_service.dart. Publisher prefix 3158058385417964
+             (16 digits — AdMob publisher IDs are ALWAYS 16; a 15-digit prefix
+             is treated as a malformed APPLICATION_ID and crashes the app at
+             startup). -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-3158058385417964~9807182108" />
+    </application>
+</manifest>

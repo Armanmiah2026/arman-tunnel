@@ -1,0 +1,36 @@
+name: sensei_tunnel
+description: Sensei Tunnel - A powerful VPN client based on Xray-core
+version: 1.0.55+61
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: '>=1.0.6 <2.0.0'
+  provider: '>=6.1.1 <7.0.0'
+  shared_preferences: '>=2.2.2 <3.0.0'
+  http: '>=1.1.2 <2.0.0'
+  path_provider: '>=2.1.1 <3.0.0'
+  url_launcher: '>=6.2.1 <7.0.0'
+  flutter_svg: '>=2.0.9 <3.0.0'
+  google_fonts: '>=6.1.0 <9.0.0'
+  animations: '>=2.0.8 <4.0.0'
+  file_picker: '>=8.0.0 <14.0.0'
+  webview_flutter: '>=4.7.0 <5.0.0'
+  qr_flutter: '>=4.1.0 <5.0.0'
+  google_mobile_ads: ^6.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: '>=4.0.0 <7.0.0'
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/sensei_logo.png
+    - assets/images/sensei_mark.png
+    - assets/images/sensei_splash.png

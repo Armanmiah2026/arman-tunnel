@@ -1,0 +1,42 @@
+package com.trilead.ssh2.signature;
+
+import java.math.BigInteger;
+
+/**
+ * DSAPublicKey.
+ *
+ * @author Christian Plattner, plattner@trilead.com
+ * @version $Id: DSAPublicKey.java,v 1.1 2007/10/15 12:49:57 cplattne Exp $
+ * @see java.security.interfaces.DSAPublicKey
+ * @deprecated use {@link java.security.interfaces.DSAPublicKey}
+ */
+@Deprecated
+public class DSAPublicKey {
+    private final BigInteger p;
+    private final BigInteger q;
+    private final BigInteger g;
+    private final BigInteger y;
+
+    public DSAPublicKey(BigInteger p, BigInteger q, BigInteger g, BigInteger y) {
+        this.p = p;
+        this.q = q;
+        this.g = g;
+        this.y = y;
+    }
+
+    public BigInteger getP() {
+        return p;
+    }
+
+    public BigInteger getQ() {
+        return q;
+    }
+
+    public BigInteger getG() {
+        return g;
+    }
+
+    public BigInteger getY() {
+        return y;
+    }
+}

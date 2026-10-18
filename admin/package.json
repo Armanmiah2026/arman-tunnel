@@ -1,0 +1,12 @@
+{
+  "name": "arman-tunnel-admin",
+  "private": true,
+  "type": "module",
+  "description": "Cloudflare Worker for the Arman Tunnel admin panel. `ui/` holds the React panel it serves.",
+  "scripts": {
+    "check": "node --check src/index.js && node --check src/config-schema.js",
+    "test": "node src/config-schema.test.mjs",
+    "verify": "npm run check && npm run test",
+    "deploy": "wrangler deploy"
+  }
+}

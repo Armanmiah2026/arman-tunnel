@@ -1,0 +1,57 @@
+name = "arman-tunnel-admin"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+# Cloudflare account (Armanmiah2026 — from `wrangler whoami`).
+account_id = "61702a82c3331333a903b050089e103d"
+# Custom domain (active zone cloudv2roy.xyz). Without it the Worker answers on
+# <worker-name>.<your-subdomain>.workers.dev — fine for testing.
+routes = [{ pattern = "admin.cloudv2roy.xyz", custom_domain = true }]
+
+# SENSEI_KV holds admins/devices/logs (binding name kept from the original
+# architecture — the code reads env.SENSEI_KV). Created with
+# `wrangler kv namespace create SENSEI_KV`.
+[[kv_namespaces]]
+binding = "SENSEI_KV"
+id = "77056b1a8d354494b3eae4b7aeab687b"
+
+# Serve the React admin panel (built dist) as static assets. Build with:
+#   cd ui && npm install && npm run build
+#
+# run_worker_first = true is REQUIRED for the /Arman-tunnel/admin gate: without
+# it Cloudflare's asset server answers first and `not_found_handling =
+# "single-page-application"` makes EVERY unmatched path (including "/") return
+# the panel's index.html, so serveAssets()'s 404 branch is unreachable and the
+# panel stays exposed at the origin root.
+[assets]
+directory = "./ui/dist"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+run_worker_first = true
+
+# Non-secret config. Secrets (ADMIN_PASSWORD, JWT_SECRET, GITHUB_TOKEN) are set
+# separately via `wrangler secret put` — see README.md §5. Do NOT put secrets here.
+[vars]
+# Login username for the panel (password = the ADMIN_PASSWORD secret).
+ADMIN_USER = "admin"
+# The PUBLIC GitHub repo holding the two ENCRYPTED bundle files the app
+# downloads (the panel commits to it on every publish). The bundles are
+# AES-GCM ciphertext — public is safe and lets the app pull them from GitHub
+# Pages without any auth header (keeps Worker + GitHub usage at zero for
+# config delivery — the app NEVER talks to this Worker for configs).
+GITHUB_REPO = "Armanmiah2026/arman-tunnel-configs"
+GITHUB_FILE = "arman_configs_2026_v2.enc"
+GITHUB_SETTINGS_FILE = "arman_app_settings.enc"
+GITHUB_BRANCH = "main"
+# Public base URL the app downloads the .enc files from (GitHub Pages on the
+# configs repo — enable Pages on branch `main`, root).
+CONFIG_RAW_BASE = "https://armanmiah2026.github.io/arman-tunnel-configs"
+# CONFIG_V3_PEPPER is NOT set here on purpose: crypto.js falls back to the same
+# value its code already carries, so the plaintext never appears on GitHub.
+# To rotate it: `wrangler secret put CONFIG_V3_PEPPER` (and update the app-side
+# key derivation + republish in the same release).
+# The signing-cert hash of the RELEASE apk (built by CI from the upload
+# keystore). While empty the Worker encrypts with v2 (shared key); once set it
+# switches to v3 cert-bound bundles — the feed only decrypts on APKs signed
+# with that exact cert. Filled by the setup pipeline from the generated
+# keystore (lowercase hex, no colons).
+APP_CERT_SHA256 = "51fe9776f6e8b740e31ffb7984c7ce313f4a96d56eb15f7f6b84b538f6f85243"

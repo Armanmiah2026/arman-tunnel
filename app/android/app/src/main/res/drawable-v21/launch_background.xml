@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Modify this file to customize your launch splash screen -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@color/launcher_background" />
+
+    <!-- Arman lockup on the brand-dark splash background -->
+    <item>
+        <bitmap
+            android:gravity="center"
+            android:src="@drawable/sensei_splash" />
+    </item>
+</layer-list>

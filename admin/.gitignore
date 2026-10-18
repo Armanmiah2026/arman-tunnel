@@ -1,0 +1,4 @@
+.deploy/
+
+# wrangler deploy cache (local-only)
+.wrangler/

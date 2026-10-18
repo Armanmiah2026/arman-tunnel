@@ -1,0 +1,27 @@
+# Root-level ignores (per-directory ignores live next to their projects)
+
+# Cloudflare Worker local state / local secrets — never commit
+admin/.deploy/
+admin/.wrangler/
+admin/node_modules/
+admin/dist/
+cf.env
+**/cf.env
+*.env
+!**/.env.example
+!**/cf.env.example
+
+# Signing material — never commit
+*.jks
+*.keystore
+*.p12
+
+# Flutter/Dart build state
+app/.dart_tool/
+app/build/
+app/.flutter-plugins
+app/.flutter-plugins-dependencies
+
+# OS noise
+.DS_Store
+configs-seed/

@@ -1,0 +1,79 @@
+# Deploys the Arman Tunnel admin panel: Worker + React static assets +
+# custom domain admin.cloudv2roy.xyz (routes live in wrangler.toml).
+#
+# Runs on any push touching admin/ — CI has the fast network that pulls
+# wrangler reliably, so no local toolchain is needed anywhere.
+name: Deploy Admin Panel (Cloudflare)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'admin/**'
+      - '.github/workflows/deploy-admin.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-admin
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Verify → build UI → deploy Worker → set secrets → smoke test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: admin
+    env:
+      CLOUDFLARE_API_KEY: ${{ secrets.CLOUDFLARE_API_KEY }}
+      CLOUDFLARE_EMAIL: ${{ secrets.CLOUDFLARE_EMAIL }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Worker syntax + schema/crypto tests
+        run: npm run verify
+
+      - name: Install panel deps + typecheck + build
+        working-directory: admin/ui
+        run: |
+          if [ -f package-lock.json ]; then npm ci; else npm install --no-audit --no-fund; fi
+          npm run lint
+          npm run build
+
+      - name: Deploy Worker (script, assets, KV binding, custom domain)
+        run: npx wrangler@4 deploy
+
+      # Secrets are pushed after the first upload (the secrets API needs an
+      # existing script). Idempotent — re-pushing the same values is a no-op.
+      - name: Push Worker secrets (ADMIN_PASSWORD / JWT_SECRET / GITHUB_TOKEN)
+        env:
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PANEL_PASSWORD }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          GITHUB_CONFIGS_PAT: ${{ secrets.CONFIGS_PAT }}
+        run: |
+          test -n "$ADMIN_PASSWORD" || { echo "ADMIN_PANEL_PASSWORD secret missing"; exit 1; }
+          test -n "$JWT_SECRET" || { echo "JWT_SECRET secret missing"; exit 1; }
+          test -n "$GITHUB_CONFIGS_PAT" || { echo "CONFIGS_PAT secret missing"; exit 1; }
+          printf '%s' "$ADMIN_PASSWORD" | npx wrangler@4 secret put ADMIN_PASSWORD
+          printf '%s' "$JWT_SECRET" | npx wrangler@4 secret put JWT_SECRET
+          printf '%s' "$GITHUB_CONFIGS_PAT" | npx wrangler@4 secret put GITHUB_TOKEN
+
+      - name: Smoke test the live panel
+        run: |
+          sleep 8
+          echo "--- /api/backend (public branding, must NOT contain secrets) ---"
+          curl -fsS https://admin.cloudv2roy.xyz/api/backend
+          echo
+          echo "--- panel gate ---"
+          echo "panel HTTP $(curl -s -o /dev/null -w '%{http_code}' https://admin.cloudv2roy.xyz/Arman-tunnel/admin)"
+          echo "--- origin root (must NOT expose the panel) ---"
+          echo "root   HTTP $(curl -s -o /dev/null -w '%{http_code}' https://admin.cloudv2roy.xyz/)"

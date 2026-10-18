@@ -1,0 +1,79 @@
+@import "tailwindcss";
+
+/*
+ * Arman Tunnel admin — "Violet Pulse" design tokens.
+ * Mirrors the app palette (lib/theme/sensei_tokens.dart): violet accent on
+ * near-black violet surfaces, lavender for highlights, amber reserved for
+ * failures/warnings. No other hues.
+ */
+:root {
+  --bg: #0b0913;
+  --surface: #171226;
+  --surface-2: #1e1733;
+  --border: #2c2447;
+  --accent: #7c3aed;
+  --lime: #c084fc;
+  --text: #f4f1fb;
+  --muted: #a9a0c4;
+  --hint: #6f6792;
+  --warn: #fbbf24;
+}
+
+@theme {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface2: var(--surface-2);
+  --color-line: var(--border);
+  --color-accent: var(--accent);
+  --color-lime: var(--lime);
+  --color-ink: var(--text);
+  --color-muted: var(--muted);
+  --color-hint: var(--hint);
+  --color-warn: var(--warn);
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  background: radial-gradient(1200px 600px at 50% -10%, #1e1240 0%, var(--bg) 55%) fixed;
+  color: var(--text);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* Users must be able to select config text (hosts, uuids, links). */
+input,
+textarea,
+pre,
+code,
+.selectable {
+  user-select: text;
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.anim-in {
+  animation: fade-up 0.18s ease-out both;
+}
+
+@keyframes pop {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+.anim-pop {
+  animation: pop 0.16s ease-out both;
+}
+
+/* Slim scrollbars */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }

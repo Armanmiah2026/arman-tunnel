@@ -1,0 +1,78 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.buildlog/
+.history
+.svn/
+migrate_working_dir/
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# The .vscode folder contains launch configuration and tasks you configure in
+# VS Code which you may wish to be included in version control, so this line
+# is commented out by default.
+#.vscode/
+
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+/build/
+
+# Symbolication related
+app.*.symbols
+
+# Obfuscation related
+app.*.map.json
+
+# Android Studio will place build artifacts here
+/android/app/debug
+/android/app/profile
+/android/app/release
+/android/.gradle/
+/android/app/.cxx/
+
+# Local scratch notes
+/next.md
+
+# Decompiled reference app (local only, never push)
+/decompiled/
+
+# Node modules
+node_modules/
+
+# Native binaries in jniLibs (downloaded by CI)
+# These should NOT be committed - CI downloads them during build
+android/app/src/main/jniLibs/*/libxray.so
+android/app/src/main/jniLibs/*/libhev-socks5-tunnel.so
+
+# HTTP Custom (xyz.easypro.httpcustom) extracted native libs — local reference only,
+# NOT used by the app (different engine stack / JNI). Staged for analysis.
+vendor/httpcustom/
+# OpenVPN Lite (OpenVPN Lite_1.1.28x.apk) extracted native libs — local reference only.
+# NOTE: its libovpncli.so (mbedTLS, ph.yooh.novpn) is JNI-compatible with our app and is a
+# candidate drop-in replacement for our broken OpenSSL-4.0 libovpncli.so. See HANDOFF.
+vendor/OpenVPNLite/
+
+# Local configuration
+local.properties
+
+# CI-generated integrity mesh header (SECURITY_PLAN.md)
+android/app/src/main/cpp/libapp_sha256.h
+
+# Release signing keystore — NEVER commit (CI reads it from secrets).
+upload-keystore.jks
+*.jks

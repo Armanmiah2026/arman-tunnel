@@ -1,0 +1,9 @@
+android/app/src/main/assets/xray/*.dat binary
+android/app/src/main/jniLibs/**/*.so binary
+
+# Vendored / generated Java — not app code; keep GitHub language stats honest
+android/app/src/main/java/com/trilead/** linguist-vendored=true
+android/app/src/main/java/net/sourceforge/** linguist-vendored=true
+android/app/src/main/java/com/cbtunnel/** linguist-vendored=true
+android/app/src/main/java/ph/yooh/** linguist-generated=true
+android/app/src/main/java/io/flutter/** linguist-generated=true

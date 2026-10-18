@@ -1,0 +1,141 @@
+# Automated Android APK build for Arman Tunnel.
+#
+# Toolchain (pinned by app/README.md):
+#   Flutter 3.47.7 · JDK 17 · compileSdk/targetSdk 36 · build-tools 35
+#   NDK 25.1.8937393 · CMake 3.22.1 · Gradle 8.11.1 / AGP 8.7.3 (wrapper-pinned)
+#
+# Outputs: split-per-ABI release APKs (arm64-v8a + armeabi-v7a), signed with
+# the upload keystore stored in secrets, cert-bound config feed enabled via
+# SENSEI_EXPECTED_CERT_SHA256. The APKs are uploaded as a workflow artifact
+# AND published as a GitHub Release on the public configs repo (direct
+# download link).
+name: Build APK
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'app/**'
+      - '.github/workflows/build-apk.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-apk
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Analyze → test → release APKs → publish download
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: app
+    env:
+      SENSEI_STORE_FILE: upload-keystore.jks
+      SENSEI_STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      SENSEI_KEY_ALIAS: arman2026
+      SENSEI_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+      SENSEI_EXPECTED_CERT_SHA256: ${{ secrets.APP_CERT_SHA256 }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.7'
+          channel: stable
+          cache: true
+
+      - name: Android SDK packages (platform 36, build-tools 35, NDK, CMake)
+        run: |
+          set -euo pipefail
+          yes | sdkmanager --licenses > /dev/null || true
+          sdkmanager "platform-tools" "platforms;android-36" "build-tools;35.0.0" \
+                     "ndk;25.1.8937393" "cmake;3.22.1"
+
+      - name: Restore release keystore + verify cert hash matches the feed
+        run: |
+          set -euo pipefail
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 -d > android/app/upload-keystore.jks
+          test -s android/app/upload-keystore.jks || { echo "keystore decode failed"; exit 1; }
+          ACTUAL=$(keytool -list -v -keystore android/app/upload-keystore.jks \
+                     -storepass "$SENSEI_STORE_PASSWORD" -alias "$SENSEI_KEY_ALIAS" 2>/dev/null \
+                   | grep -i 'SHA256:' | head -1 | sed 's/.*SHA256: *//' | tr -d ':' | tr 'A-Z' 'a-z')
+          echo "keystore cert: $ACTUAL"
+          echo "feed     cert: $SENSEI_EXPECTED_CERT_SHA256"
+          test "$ACTUAL" = "$SENSEI_EXPECTED_CERT_SHA256" || {
+            echo "CERT MISMATCH — the config feed would refuse to decrypt on this build"; exit 1; }
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+
+      - name: Fetch xray-core engine binaries (app/README §5)
+        run: |
+          set -euo pipefail
+          J=android/app/src/main/jniLibs
+          mkdir -p "$J/arm64-v8a" "$J/armeabi-v7a"
+          curl -fL --retry 5 --retry-delay 3 -o /tmp/xray-arm64.zip \
+            https://github.com/XTLS/Xray-core/releases/download/v25.5.16/Xray-android-arm64-v8a.zip
+          curl -fL --retry 5 --retry-delay 3 -o /tmp/xray-arm32.zip \
+            https://github.com/XTLS/Xray-core/releases/download/v25.5.16/Xray-linux-arm32-v7a.zip
+          unzip -o -q /tmp/xray-arm64.zip -d /tmp/x64
+          unzip -o -q /tmp/xray-arm32.zip -d /tmp/x32
+          install -m 0755 "$(find /tmp/x64 -type f -name xray | head -1)" "$J/arm64-v8a/libxray.so"
+          install -m 0755 "$(find /tmp/x32 -type f -name xray | head -1)" "$J/armeabi-v7a/libxray.so"
+          ls -la "$J"/*/libxray.so
+
+      - name: Flutter deps
+        run: flutter pub get
+
+      - name: Analyze (primary gate)
+        run: flutter analyze
+
+      - name: Unit + widget tests
+        run: flutter test
+
+      - name: Build release APKs (split-per-ABI, obfuscated)
+        run: |
+          flutter build apk --release --obfuscate \
+            --split-debug-info=build/app/outputs/symbols \
+            --split-per-abi \
+            --target-platform android-arm,android-arm64
+
+      - name: Stage APKs with clean names
+        run: |
+          set -euo pipefail
+          VER=$(node -e "const m=require('fs').readFileSync('pubspec.yaml','utf8').match(/^version:\s*([0-9.]+)/m);console.log(m[1])")
+          echo "APP_VERSION=$VER" >> "$GITHUB_ENV"
+          mkdir -p dist
+          cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk "dist/Arman-Tunnel-$VER-arm64-v8a.apk"
+          cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk "dist/Arman-Tunnel-$VER-armeabi-v7a.apk"
+          ls -la dist/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: arman-tunnel-apk-${{ github.run_number }}
+          path: |
+            app/dist/*.apk
+            app/build/app/outputs/symbols/**
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish GitHub Release on the configs repo (direct download link)
+        if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ secrets.CONFIGS_PAT }}
+        run: |
+          set -euo pipefail
+          TAG="v${APP_VERSION}-b${{ github.run_number }}"
+          gh release create "$TAG" dist/*.apk \
+            --repo Armanmiah2026/arman-tunnel-configs \
+            --title "Arman Tunnel $APP_VERSION (build ${{ github.run_number }})" \
+            --notes "Automated CI build. Install the APK matching your device: **arm64-v8a** (most phones) or armeabi-v7a (older/32-bit). Signed with the release key; config feed is cert-bound to it." \
+          || gh release upload "$TAG" dist/*.apk --repo Armanmiah2026/arman-tunnel-configs --clobber
+          echo "Release: https://github.com/Armanmiah2026/arman-tunnel-configs/releases/tag/$TAG"

@@ -1,0 +1,15 @@
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  errors:
+    deprecated_member_use: info
+  exclude:
+    - build/**
+    - android/**
+
+linter:
+  rules:
+    # The whole UI is built from long const style trees; forcing extraction
+    # churns the diff without buying anything.
+    avoid_unnecessary_containers: false
+    sized_box_for_whitespace: false
