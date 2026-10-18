@@ -82,6 +82,25 @@ jobs:
           echo "feed     cert: $SENSEI_EXPECTED_CERT_SHA256"
           test "$ACTUAL" = "$SENSEI_EXPECTED_CERT_SHA256" || {
             echo "CERT MISMATCH — the config feed would refuse to decrypt on this build"; exit 1; }
+          # Fail in seconds, not after an 8-minute build: AGP reads the private
+          # key with KeyStore.getKey(alias, KEY_PASSWORD). keytool cannot check
+          # this (PKCS12 sources ignore -srckeypass), so mirror it in Java.
+          cat > /tmp/CheckKey.java <<'JEOF'
+          import java.io.FileInputStream;
+          import java.security.KeyStore;
+          public class CheckKey {
+            public static void main(String[] a) throws Exception {
+              KeyStore ks = KeyStore.getInstance("PKCS12");
+              ks.load(new FileInputStream(a[0]), a[1].toCharArray());
+              if (ks.getKey(a[2], a[3].toCharArray()) == null) {
+                throw new IllegalStateException("key entry decrypts to null");
+              }
+              System.out.println("key password OK for alias " + a[2]);
+            }
+          }
+          JEOF
+          java /tmp/CheckKey.java android/app/upload-keystore.jks \
+            "$SENSEI_STORE_PASSWORD" "$SENSEI_KEY_ALIAS" "$SENSEI_KEY_PASSWORD"
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
 
