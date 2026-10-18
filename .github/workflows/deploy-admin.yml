@@ -54,18 +54,23 @@ jobs:
 
       # Secrets are pushed after the first upload (the secrets API needs an
       # existing script). Idempotent — re-pushing the same values is a no-op.
-      - name: Push Worker secrets (ADMIN_PASSWORD / JWT_SECRET / GITHUB_TOKEN)
+      - name: Push Worker secrets (ADMIN_PASSWORD / JWT_SECRET / GITHUB_TOKEN / DEV_ACCOUNTS)
         env:
           ADMIN_PASSWORD: ${{ secrets.ADMIN_PANEL_PASSWORD }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           GITHUB_CONFIGS_PAT: ${{ secrets.CONFIGS_PAT }}
+          DEV_ACCOUNTS: ${{ secrets.DEV_ACCOUNTS }}
         run: |
           test -n "$ADMIN_PASSWORD" || { echo "ADMIN_PANEL_PASSWORD secret missing"; exit 1; }
           test -n "$JWT_SECRET" || { echo "JWT_SECRET secret missing"; exit 1; }
           test -n "$GITHUB_CONFIGS_PAT" || { echo "CONFIGS_PAT secret missing"; exit 1; }
+          test -n "$DEV_ACCOUNTS" || { echo "DEV_ACCOUNTS secret missing"; exit 1; }
           printf '%s' "$ADMIN_PASSWORD" | npx wrangler@4 secret put ADMIN_PASSWORD
           printf '%s' "$JWT_SECRET" | npx wrangler@4 secret put JWT_SECRET
           printf '%s' "$GITHUB_CONFIGS_PAT" | npx wrangler@4 secret put GITHUB_TOKEN
+          # Developer role ("user:pass[,user2:pass2]") — unlocks Admin accounts,
+          # Backup & restore, Danger zone + dev-only audit logs.
+          printf '%s' "$DEV_ACCOUNTS" | npx wrangler@4 secret put DEV_ACCOUNTS
 
       - name: Smoke test the live panel
         run: |

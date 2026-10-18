@@ -57,6 +57,15 @@ jobs:
       - name: Android SDK packages (platform 36, build-tools 35, NDK, CMake)
         run: |
           set -euo pipefail
+          # sdkmanager is not on PATH on hosted runners — locate it explicitly.
+          SM="${ANDROID_HOME:-/usr/local/lib/android/sdk}/cmdline-tools/latest/bin/sdkmanager"
+          if [ ! -x "$SM" ]; then
+            SM="$(find "${ANDROID_HOME:-/usr/local/lib/android/sdk}" -type f -name sdkmanager 2>/dev/null | head -1 || true)"
+          fi
+          if [ -z "${SM:-}" ] || [ ! -x "$SM" ]; then
+            echo "sdkmanager not found under ANDROID_HOME=${ANDROID_HOME:-unset}"; exit 1
+          fi
+          export PATH="$(dirname "$SM"):$PATH"
           yes | sdkmanager --licenses > /dev/null || true
           sdkmanager "platform-tools" "platforms;android-36" "build-tools;35.0.0" \
                      "ndk;25.1.8937393" "cmake;3.22.1"
