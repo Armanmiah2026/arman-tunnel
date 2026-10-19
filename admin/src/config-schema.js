@@ -1584,6 +1584,33 @@ export function validateServer(s) {
  *  Endpoint/credentials are NOT required — they come from the server. A bare
  *  tweak (no payload/SNI — plain server connection for IP change) is valid;
  *  the method-less case only warns. */
+/**
+ * The app injector's payload token table — a byte-faithful mirror of the
+ * render pass in app/.../PayloadInjector.kt. Any bracket token OUTSIDE this
+ * set is dropped at render time (with a log line), silently mangling the
+ * request — so the panel lints payloads against it before shipping.
+ */
+export const PAYLOAD_TOKENS = [
+  'method', 'real_host_port', 'host_port', 'ssh_host', 'ssh_port', 'ssh',
+  'rlb', 'cf', 'bug_host', 'bug', 'host', 'ip', 'ip_port', 'port',
+  'protocol', 'ua', 'user-agent', 'app', 'real_raw', 'net_data', 'netdata',
+  'raw', 'realdata', 'real_data', 'auth', 'proxy_host', 'proxy_port',
+  'instant_split', 'split_instant', 'delay_split', 'split_delay', 'delay',
+  'split', 'lfcr', 'crlf', 'cr', 'lf', 'random', 'repeat',
+];
+
+/** Bracket tokens in [payload] the injector would drop. */
+export function unknownPayloadTokens(payload) {
+  const text = str(payload)
+    .replace(/\[rotate=[^\]]*]/gi, '')   // rotation URL form
+    .replace(/\[(cr|lf|crlf|lfcr)\*\d{1,3}]/gi, ''); // repeat form
+  const found = new Set();
+  for (const m of text.matchAll(/\[([^\[\]\r\n]{1,64})]/g)) {
+    if (!PAYLOAD_TOKENS.includes(m[1].toLowerCase())) found.add(m[1]);
+  }
+  return [...found];
+}
+
 export function validateVariantConfig(c, servers) {
   const errors = [];
   const warnings = [];
@@ -1621,6 +1648,15 @@ export function validateVariantConfig(c, servers) {
     const caps = (s?.capabilities || []).map((x) => String(x).toUpperCase());
     if (s && !caps.includes('INJECTED') && !caps.includes('SNI')) {
       err('injectMode', 'This server has no inject front ([INJECTED]/[SNI]) — injection cannot work; set Inject to none');
+    }
+  }
+  // Payload token linter: the app's injector DROPS any bracket token that is
+  // not in its render table (PayloadInjector.kt), silently mangling the
+  // request. Flag them here so the admin sees exactly what will happen.
+  if (c.payload && String(c.payload).trim()) {
+    const unknown = unknownPayloadTokens(c.payload);
+    if (unknown.length > 0) {
+      warn('payload', `Unsupported token(s) the injector will drop: ${unknown.map((t) => `[${t}]`).join(', ')}`);
     }
   }
   if ((c.injectMode === 'proxy' || c.injectMode === 'proxySni') && !c.injectHost) {

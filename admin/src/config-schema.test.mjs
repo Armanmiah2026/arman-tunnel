@@ -21,6 +21,7 @@ import {
   validateServer,
   joinServerIntoConfig,
   serverToAppConfig,
+  unknownPayloadTokens,
   validateVariantConfig,
   normalizeCategoryEntity,
   validateCategoryEntity,
@@ -1032,6 +1033,36 @@ test('validateVariantConfig: legacy serverId anchor gets the same inject-front g
   assert.ok(v.errors.some((e) => e.field === 'injectMode' && /inject front/.test(e.message)));
   v = validateVariantConfig({ name: 'T', serverId: fronted.id, injectMode: 'direct' }, [fronted]);
   assert.equal(v.ok, true, JSON.stringify(v.errors));
+});
+
+test('unknownPayloadTokens mirrors the injector drop-list', () => {
+  // A real payload from the field: [isv_host] is NOT in PayloadInjector's
+  // table — the injector drops it and mangles the request line.
+  assert.deepEqual(
+    unknownPayloadTokens('GET / HTTP/1.1[crlf]Host:[isv_host][crlf]X-Online-Host: [host][crlf][crlf]'),
+    ['isv_host'],
+  );
+  // Known tokens + supported forms pass clean.
+  assert.deepEqual(
+    unknownPayloadTokens(
+      'CONNECT [host_port]@www.kw.zain.com [protocol][crlf][cr*15][crlf][rotate=https://x/list][delay_split]',
+    ),
+    [],
+  );
+  // Case-insensitive, distinct, no false positives from escaped CRLF text.
+  assert.deepEqual(unknownPayloadTokens('GET / [HOST][crlf]\\r\\n[ua]'), []);
+  assert.deepEqual(unknownPayloadTokens('GET /[bogus][also_bad]'), ['bogus', 'also_bad']);
+});
+
+test('validateVariantConfig: unsupported payload tokens surface as a warning', () => {
+  const srv = normalizeServer({ name: 'S', protocol: 'ssh', address: 's.example.com', port: 22, sshUser: 'u', sshPass: 'p', capabilities: ['DIRECT'] });
+  const v = validateVariantConfig(
+    { name: 'T', capability: 'DIRECT', family: 'ssh', injectMode: 'none', payload: 'GET /[isv_host][crlf]' },
+    [srv],
+  );
+  assert.equal(v.ok, true, 'warnings must not block the save');
+  assert.ok(v.warnings.some((w) => w.field === 'payload' && /\[isv_host\]/.test(w.message)),
+    `expected token warning, got ${JSON.stringify(v.warnings)}`);
 });
 
 test('capability type entity normalize + validate round-trips', () => {
