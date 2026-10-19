@@ -153,6 +153,7 @@ export function Select<T extends string>(props: {
   options: ReadonlyArray<{ value: T; label: string }>;
   onChange: (v: T) => void;
   hint?: string;
+  disabled?: boolean;
 }) {
   return (
     <label className="block">
@@ -162,6 +163,7 @@ export function Select<T extends string>(props: {
       <select
         value={props.value}
         onChange={(e) => props.onChange(e.target.value as T)}
+        disabled={props.disabled}
         className={inputCls}
       >
         {props.options.map((o) => (

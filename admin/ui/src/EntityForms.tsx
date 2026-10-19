@@ -642,6 +642,25 @@ export function TweaksForm(props: {
   const selectedType = props.types.find((t) => t.name === capability) || null;
   const isWs = anchorServer?.transport === 'ws';
 
+  // Injection needs a server-side front ([INJECTED]/[SNI] capability). A
+  // tweak riding only DIRECT servers can never decode a payload — letting
+  // directSni/save through produced configs that connected to a plain
+  // SSH/TCP port with TLS+HTTP garbage. Force the mode off here AND in the
+  // validator so it cannot slip in from any client.
+  const injectFront = useMemo(
+    () =>
+      selectedServers.some((s) =>
+        (s.capabilities || [])
+          .map((c) => String(c).toUpperCase())
+          .some((c) => c === 'INJECTED' || c === 'SNI'),
+      ),
+    [selectedServers],
+  );
+  useEffect(() => {
+    if (!injectFront && injectMode !== 'none') setInjectMode('none');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [injectFront]);
+
   const [dry, setDry] = useState<DryRun | null>(null);
   const debounce = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -712,7 +731,7 @@ export function TweaksForm(props: {
       name: name.trim(),
       category: categoryName,
       payload: usePayload ? payload : '',
-      injectMode: (usePayload || useSni ? injectMode : 'none') as ServerConfig['injectMode'],
+      injectMode: (injectFront && (usePayload || useSni) ? injectMode : 'none') as ServerConfig['injectMode'],
       injectHost: usePayload ? injectHost : '',
       injectPort: usePayload ? injectPort : '',
       payloadEnhanced: usePayload ? enhanced : false,
@@ -783,7 +802,7 @@ export function TweaksForm(props: {
 
   function togglePayload(v: boolean) {
     setUsePayload(v);
-    if (v && injectMode === 'none') setInjectMode('direct');
+    if (v && injectMode === 'none' && injectFront) setInjectMode('direct');
     if (!v && (injectMode === 'direct' || injectMode === 'proxy')) {
       setInjectMode(useSni && injectMode === 'proxy' ? 'proxySni' : useSni ? 'directSni' : 'none');
     }
@@ -791,10 +810,10 @@ export function TweaksForm(props: {
 
   function toggleSni(v: boolean) {
     setUseSni(v);
-    if (v && fam === 'ssh') {
+    if (v && fam === 'ssh' && injectFront) {
       setInjectMode(injectMode.startsWith('proxy') ? 'proxySni' : 'directSni');
     }
-    if (!v && fam === 'ssh') {
+    if (!v && fam === 'ssh' && injectFront) {
       if (injectMode === 'directSni') setInjectMode(usePayload ? 'direct' : 'none');
       else if (injectMode === 'proxySni') setInjectMode('proxy');
     }
@@ -815,7 +834,9 @@ export function TweaksForm(props: {
         // Keep the mode the toggles tracked: an SSH tweak with only SSL/SNI
         // ticked must keep directSni (the TLS wrap) — blanking it when the
         // payload is off left the app dialing plain SSH into a TLS port.
-        injectMode: (usePayload || useSni ? injectMode : 'none') as ServerConfig['injectMode'],
+        // Without an inject front on the servers, injection is impossible —
+        // the mode is forced to none (the validator rejects it too).
+        injectMode: (injectFront && (usePayload || useSni) ? injectMode : 'none') as ServerConfig['injectMode'],
         injectHost: usePayload ? injectHost : '',
         injectPort: usePayload ? injectPort : '',
         payloadEnhanced: usePayload ? enhanced : false,
@@ -1026,6 +1047,12 @@ export function TweaksForm(props: {
               <Select
                 label="Inject Mode"
                 value={injectMode}
+                disabled={!injectFront}
+                hint={
+                  injectFront
+                    ? undefined
+                    : '⚠ None of the attached servers has an inject front ([INJECTED]/[SNI]) — injection is locked off; a payload cannot work against a plain server'
+                }
                 options={['none', 'direct', 'directSni', 'proxy', 'proxySni', 'dnstt']
                   .filter((m) => (m === 'dnstt' ? fam === 'ssh' : true))
                   .map((m) => ({

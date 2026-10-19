@@ -1600,6 +1600,27 @@ export function validateVariantConfig(c, servers) {
     if (pool.length === 0) {
       const selected = normalizeServerIds(c.serverIds).length > 0 ? ' selected' : '';
       err('capability', `No${selected} server supports [${str(c.capability).toUpperCase()}] on this protocol family — tick a compatible server first`);
+    } else if (c.injectMode && c.injectMode !== 'none') {
+      // Injection needs a server-side front that decodes the payload/SNI
+      // rewrite and hands the stream to the real protocol. A DIRECT-only
+      // pool has none — the app would TLS-wrap + HTTP-inject straight into
+      // a plain SSH/TCP port, where it is garbage. Refuse loudly.
+      const injectCapable = pool.some((s) =>
+        (s.capabilities || []).map((x) => String(x).toUpperCase())
+          .some((cap) => cap === 'INJECTED' || cap === 'SNI'),
+      );
+      if (!injectCapable) {
+        err('injectMode', 'None of these servers has an inject front ([INJECTED]/[SNI]) — injection cannot work; set Inject to none');
+      }
+    }
+  }
+  // Legacy anchor path: a config with no capability rides its serverId only.
+  if (!c.capability && c.serverId && servers && servers.length > 0 &&
+      c.injectMode && c.injectMode !== 'none') {
+    const s = servers.find((x) => x.id === c.serverId);
+    const caps = (s?.capabilities || []).map((x) => String(x).toUpperCase());
+    if (s && !caps.includes('INJECTED') && !caps.includes('SNI')) {
+      err('injectMode', 'This server has no inject front ([INJECTED]/[SNI]) — injection cannot work; set Inject to none');
     }
   }
   if ((c.injectMode === 'proxy' || c.injectMode === 'proxySni') && !c.injectHost) {

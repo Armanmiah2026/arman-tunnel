@@ -996,6 +996,44 @@ test('validateVariantConfig: capability OR legacy serverId, pool must exist', ()
   assert.equal(v.ok, true);
 });
 
+test('validateVariantConfig: injection requires an inject front on the pool', () => {
+  const direct = normalizeServer({ name: 'Plain', protocol: 'ssh', address: 'p.example.com', port: 22, sshUser: 'u', sshPass: 'p', capabilities: ['DIRECT'] });
+  const fronted = normalizeServer({ name: 'Front', protocol: 'ssh', address: 'f.example.com', port: 443, sshUser: 'u', sshPass: 'p', capabilities: ['INJECTED'] });
+
+  // DIRECT-only pool + payload injection → the app would inject into a
+  // plain port: hard error, not a warning.
+  let v = validateVariantConfig(
+    { name: 'T', capability: 'DIRECT', family: 'ssh', injectMode: 'directSni', payload: 'GET / HTTP/1.1[crlf][crlf]' },
+    [direct],
+  );
+  assert.ok(v.errors.some((e) => e.field === 'injectMode' && /inject front/.test(e.message)),
+    `expected injectMode error, got ${JSON.stringify(v.errors)}`);
+
+  // Same tweak with a fronted server in the pool → allowed.
+  v = validateVariantConfig(
+    { name: 'T', capability: 'INJECTED', family: 'ssh', injectMode: 'directSni', payload: 'GET / HTTP/1.1[crlf][crlf]' },
+    [fronted],
+  );
+  assert.equal(v.ok, true, JSON.stringify(v.errors));
+
+  // DIRECT pool + injectMode none → fine (plain tunnel).
+  v = validateVariantConfig(
+    { name: 'T', capability: 'DIRECT', family: 'ssh', injectMode: 'none' },
+    [direct],
+  );
+  assert.equal(v.ok, true, JSON.stringify(v.errors));
+});
+
+test('validateVariantConfig: legacy serverId anchor gets the same inject-front gate', () => {
+  const plain = normalizeServer({ name: 'Plain', protocol: 'ssh', address: 'p.example.com', port: 22, sshUser: 'u', sshPass: 'p', capabilities: ['DIRECT'] });
+  const fronted = normalizeServer({ name: 'Front', protocol: 'ssh', address: 'f.example.com', port: 443, sshUser: 'u', sshPass: 'p', capabilities: ['INJECTED'] });
+  // no capability: legacy anchor path
+  let v = validateVariantConfig({ name: 'T', serverId: plain.id, injectMode: 'direct' }, [plain]);
+  assert.ok(v.errors.some((e) => e.field === 'injectMode' && /inject front/.test(e.message)));
+  v = validateVariantConfig({ name: 'T', serverId: fronted.id, injectMode: 'direct' }, [fronted]);
+  assert.equal(v.ok, true, JSON.stringify(v.errors));
+});
+
 test('capability type entity normalize + validate round-trips', () => {
   const t = normalizeCapabilityType({ name: ' robi payload ', description: 'x' });
   assert.equal(t.name, 'ROBI_PAYLOAD');
