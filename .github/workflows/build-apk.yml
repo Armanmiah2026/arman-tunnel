@@ -128,6 +128,12 @@ jobs:
       - name: Unit + widget tests
         run: flutter test
 
+      # Kotlin JVM tests — the proxy relay's wire rules (SOCKS reply targeting
+      # the client, Proxy-Authorization INSIDE the CONNECT headers, RFC1929
+      # upstream auth) live in app/src/test and must gate the release too.
+      - name: Kotlin unit tests (proxy handshake wire rules)
+        run: cd android && ./gradlew testDebugUnitTest --no-daemon --console=plain
+
       - name: Build release APKs (split-per-ABI, obfuscated)
         run: |
           flutter build apk --release --obfuscate \

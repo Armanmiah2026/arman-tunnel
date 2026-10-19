@@ -1,6 +1,6 @@
 name: sensei_tunnel
 description: Sensei Tunnel - A powerful VPN client based on Xray-core
-version: 1.0.55+61
+version: 1.0.56+62
 
 environment:
   sdk: '>=3.0.0 <4.0.0'

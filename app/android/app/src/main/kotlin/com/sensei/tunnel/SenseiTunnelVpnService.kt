@@ -551,6 +551,8 @@ class SenseiTunnelVpnService : VpnService() {
     private var sshConnection: Connection? = null
     private var sshForwarder: DynamicPortForwarder? = null
     private var sshHttpBridge: HttpSocksBridge? = null
+    /** Local SOCKS5 → upstream-proxy relay for socks/http_proxy configs. */
+    private var proxyEngine: ProxyEngine? = null
 
     // Native binary paths
     private lateinit var xrayBin: File
@@ -918,6 +920,27 @@ class SenseiTunnelVpnService : VpnService() {
             } else if (isProxy) {
                 markPhase("proxy")
                 startProxy()
+                // No UDP ASSOCIATE on this listener (same as SSH): the UDP→TCP
+                // DNS gateway rides the local SOCKS — start it BEFORE tun2socks
+                // so its --dnsgw flag is in the command line.
+                startDnsGateway()
+                // App-internal HTTP (config refresh, IP check) cannot speak
+                // SOCKS — bridge it like the SSH path, or it leaks out the
+                // physical interface while connected.
+                try {
+                    val bridge = HttpSocksBridge("127.0.0.1", 10809, "127.0.0.1", 10808)
+                    bridge.start()
+                    sshHttpBridge = bridge
+                    Log.i(TAG, "HTTP<->SOCKS bridge started on 127.0.0.1:10809 (proxy mode)")
+                } catch (e: Exception) {
+                    Log.w(TAG, "HTTP bridge failed: ${e.message}")
+                    emitLog("HTTP bridge failed: ${e.message} — app self-traffic may bypass the tunnel")
+                }
+                // The TUN established above was previously READ BY NOTHING:
+                // tun2socks must run and point at this engine's local SOCKS5
+                // listener (127.0.0.1:10808), exactly like every other
+                // local-SOCKS mode (hysteria / ssh / xray).
+                startTun2socks()
             } else {
                 val wantDnstt = mode.lowercase().contains("dnstt") || (isSsh && dnsttServer.isNotBlank())
                 if (isSsh) {
@@ -1081,6 +1104,9 @@ class SenseiTunnelVpnService : VpnService() {
         if (!engine.start()) {
             throw IOException("Proxy failed to start")
         }
+        // Keep the reference: stop() must close the 10808 listener on
+        // disconnect, or the next session dies with "port in use".
+        proxyEngine = engine
     }
 
     private fun startXray() {
@@ -2337,10 +2363,12 @@ class SenseiTunnelVpnService : VpnService() {
             Log.e(TAG, "Error stopping tun2socks", e)
         }
 
-        // Stop xray / SSH / injector
+        // Stop xray / SSH / injector / proxy relay
         try {
             sshHttpBridge?.stop()
             sshHttpBridge = null
+            proxyEngine?.stop()
+            proxyEngine = null
             sshForwarder?.close()
             sshForwarder = null
             sshConnection?.close()
