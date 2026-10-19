@@ -1732,17 +1732,34 @@ async function dryRunValidate(env, body) {
   // validate the JOINED config, never the bare method fields.
   if (d.serverId || String(d.capability || '').trim()) {
     const [servers, categories] = await Promise.all([loadServers(env), loadCategories(env)]);
-    const joined = joinServerIntoConfig(normalizeConfig(d), servers);
+    const variant = normalizeConfig(d);
+    const joined = joinServerIntoConfig(variant, servers);
     // Category display info for the form (flag lives on the category).
     const cat = categories.find(
       (c) => String(c.name).toLowerCase() === String(joined.category || '').toLowerCase(),
     );
-    const v = validateConfig(joined);
+    // Mirror the SAVE path exactly: the variant rules (server pool +
+    // inject-front gate) AND the joined endpoint/credential checks — the
+    // form must show the same errors createConfig/updateConfig would
+    // reject with, never a cleaner dry-run than reality.
+    const vv = validateVariantConfig(variant, servers);
+    const vj = validateConfig(joined);
+    const dedupe = (list) => {
+      const seen = new Set();
+      return list.filter((e) => {
+        const k = `${e.field}|${e.message}`;
+        if (seen.has(k)) return false;
+        seen.add(k);
+        return true;
+      });
+    };
+    const errors = dedupe([...vv.errors, ...vj.errors]);
+    const warnings = dedupe([...vv.warnings, ...vj.warnings]);
     return jsonResponse({
       ok: true,
-      valid: v.ok,
-      errors: v.errors,
-      warnings: v.warnings,
+      valid: errors.length === 0,
+      errors,
+      warnings,
       normalized: joined,
       appPayload: toAppConfig(joined),
       shareLink: buildShareLink(joined),
