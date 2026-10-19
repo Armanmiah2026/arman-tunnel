@@ -197,6 +197,7 @@ export function TweaksPage(props: {
             initial={editing}
             busy={busy}
             notify={props.notify}
+            payloadDefs={props.data.settings?.payloadDefs}
             onSave={saveLegacyConfig}
             onCancel={() => {
               setMode('list');
@@ -212,6 +213,7 @@ export function TweaksPage(props: {
             types={props.data.types}
             busy={busy}
             notify={props.notify}
+            payloadDefs={props.data.settings?.payloadDefs}
             onSave={saveTweak}
             onCancel={() => {
               setMode('list');

@@ -28,6 +28,7 @@ import {
 } from './components/ui';
 import { ExpiryField } from './components/ConfigForm';
 import { ImageUpload } from './components/ImageUpload';
+import { PayloadPicker } from './components/PayloadPicker';
 
 export const PROTOCOL_LABELS: Record<string, string> = {
   vless: 'VLESS',
@@ -556,6 +557,8 @@ export function TweaksForm(props: {
   onCancel: () => void;
   onGoServers: () => void;
   notify?: (message: string, kind?: 'success' | 'error' | 'info') => void;
+  /** Payload token library (Controls) — powers the insert-from-library picker. */
+  payloadDefs?: Record<string, string>;
 }) {
   const editing = props.initial != null;
   const init = props.initial;
@@ -1037,6 +1040,10 @@ export function TweaksForm(props: {
                   <Field label="Bug Port" value={injectPort} onChange={(v) => setInjectPort(v.replace(/\D/g, ''))} placeholder="80" />
                 </Grid>
               )}
+              <PayloadPicker
+                defs={props.payloadDefs}
+                onInsert={(tpl) => setPayload(payload ? `${payload}\n${tpl}` : tpl)}
+              />
               <TextArea label="Payload template" rows={3} mono value={payload} onChange={setPayload} placeholder={'GET / HTTP/1.1[crlf]Host: [host][crlf][crlf]  —  or [RYZE]'} />
               <Switch label="Enhanced" checked={enhanced} onChange={setEnhanced} hint="Split-send packets" />
             </div>

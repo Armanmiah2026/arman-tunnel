@@ -14,6 +14,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import {
   Globe,
   KeyRound,
+  Library,
   ListChecks,
   LogIn,
   LogOut,
@@ -32,12 +33,13 @@ import { ProxiesPage } from './pages/ProxiesPage';
 import { ServersPage } from './pages/ServersPage';
 import { TypesPage } from './pages/TypesPage';
 import { TweaksPage } from './pages/TweaksPage';
+import { PayloadsPage } from './pages/PayloadsPage';
 import { AppControlPage } from './pages/AppControlPage';
 import { DevicesPage } from './pages/DevicesPage';
 import { LogsPage } from './pages/LogsPage';
 import { SettingsPage } from './pages/SettingsPage';
 
-export type Tab = 'proxies' | 'servers' | 'types' | 'tweaks' | 'control' | 'devices' | 'logs' | 'settings';
+export type Tab = 'proxies' | 'servers' | 'types' | 'tweaks' | 'payloads' | 'control' | 'devices' | 'logs' | 'settings';
 
 const TABS: Array<{ id: Tab; label: string; icon: React.ComponentType<{ className?: string }> }> = [
   // Proxies first: a proxy is what actually reaches users, and it needs no
@@ -46,6 +48,7 @@ const TABS: Array<{ id: Tab; label: string; icon: React.ComponentType<{ classNam
   { id: 'servers', label: 'Servers', icon: ServerIcon },
   { id: 'types', label: 'Types', icon: Shapes },
   { id: 'tweaks', label: 'Tweaks', icon: SlidersHorizontal },
+  { id: 'payloads', label: 'Payloads', icon: Library },
   { id: 'control', label: 'Controls', icon: ShieldCheck },
   { id: 'devices', label: 'Devices', icon: KeyRound },
   { id: 'logs', label: 'Logs', icon: ListChecks },
@@ -260,6 +263,9 @@ export default function App() {
               notify={notify}
               onGoServers={() => setTab('servers')}
             />
+          )}
+          {tab === 'payloads' && (
+            <PayloadsPage data={data} notify={notify} onGoControl={() => setTab('control')} />
           )}
           {tab === 'control' && <AppControlPage data={data} refresh={refresh} notify={notify} />}
           {tab === 'devices' && <DevicesPage notify={notify} />}

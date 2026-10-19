@@ -26,6 +26,7 @@ import {
   Switch,
   TextArea,
 } from './ui';
+import { PayloadPicker } from './PayloadPicker';
 
 export const PROTOCOL_LABELS: Record<string, string> = {
   vless: 'VLESS',
@@ -101,6 +102,8 @@ export function ConfigForm(props: {
   onCancel?: () => void;
   compact?: boolean;
   notify?: (message: string, kind?: 'success' | 'error' | 'info') => void;
+  /** Payload token library (Controls) — powers the insert-from-library picker. */
+  payloadDefs?: Record<string, string>;
 }) {
   const editing = props.initial != null;
   const [c, setC] = useState<Partial<ServerConfig>>(
@@ -456,6 +459,12 @@ export function ConfigForm(props: {
 
         {injectMode !== 'none' && (
           <div className="mt-3">
+            <PayloadPicker
+              defs={props.payloadDefs}
+              onInsert={(tpl) =>
+                set('payload', String(c.payload || '').trim() ? `${String(c.payload || '')}\n${tpl}` : tpl)
+              }
+            />
             <TextArea label="Payload Template" rows={3} mono value={String(c.payload || '')} onChange={(v) => set('payload', v)} placeholder={'GET / HTTP/1.1[crlf]Host: [host][crlf][crlf]'} />
             <p className="mt-1 text-[11px] text-hint">
               Placeholders: <code>[host_port]</code>, <code>[crlf]</code>, <code>[split]</code>, <code>[host]</code> etc. — expanded at connect time.
