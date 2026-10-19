@@ -27,7 +27,7 @@ function classify(name: string, tpl: string): { kind: Kind; method: string } {
   let kind: Kind = 'HTTP';
   if (method === 'CONNECT') kind = 'CONNECT';
   else if (/upgrade:\s*websocket/i.test(tpl)) kind = 'WS';
-  else if (/\bSNI\b|\bSSL\b/i.test(name)) kind = 'SSL';
+  else if (/SNI|SSL/i.test(name)) kind = 'SSL';
   return { kind, method };
 }
 
