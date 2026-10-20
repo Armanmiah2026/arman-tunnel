@@ -259,6 +259,16 @@ async function handle(request, env, ctx) {
     return publicBackendInfo(env, request);
   }
 
+  // TEMP DEBUG (removed after the publish bug is fixed): runs one publish and
+  // returns the raw per-file outcome. Guarded by a one-shot key.
+  if (path === '/api/_dbg_publish' && method === 'POST') {
+    if (url.searchParams.get('k') !== 'dbg-9f3c1a') {
+      return new Response('not found', { status: 404 });
+    }
+    const pub = await publishBoth(env);
+    return jsonResponse({ ok: true, publish: pub });
+  }
+
   // ---- Everything below needs a session (+ CSRF on mutations) -----------
 
   let auth;
