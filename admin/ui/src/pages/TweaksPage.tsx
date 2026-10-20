@@ -21,7 +21,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import type { Bootstrap, CategoryEntity, ServerConfig } from '../types';
-import { api } from '../api';
+import { api, publishErrorText } from '../api';
 import {
   Badge,
   Button,
@@ -103,7 +103,7 @@ export function TweaksPage(props: {
       props.notify(
         res.publish.ok
           ? `${editing ? 'Saved' : 'Added'} "${res.config.name}" & published (${res.publish.nodes ?? 0} nodes live)`
-          : `"${res.config.name}" saved — but GitHub push FAILED`,
+          : `"${res.config.name}" saved — GitHub push FAILED: ${publishErrorText(res.publish) || 'unknown error'}`,
         res.publish.ok ? 'success' : 'error',
       );
       await props.refresh();
@@ -125,7 +125,7 @@ export function TweaksPage(props: {
       props.notify(
         res.publish.ok
           ? `Saved "${res.config.name}" & published`
-          : `"${res.config.name}" saved — but GitHub push FAILED`,
+          : `"${res.config.name}" saved — GitHub push FAILED: ${publishErrorText(res.publish) || 'unknown error'}`,
         res.publish.ok ? 'success' : 'error',
       );
       await props.refresh();

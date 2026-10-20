@@ -74,6 +74,23 @@ const put = <T,>(path: string, body?: unknown) => request<T>('PUT', path, body);
 const patch = <T,>(path: string, body?: unknown) => request<T>('PATCH', path, body);
 const del = <T,>(path: string, body?: unknown) => request<T>('DELETE', path, body);
 
+/**
+ * Why the last publish failed, in one line.
+ *
+ * The save path returns HTTP 200 (the data IS in KV) with `publish.ok:false`
+ * when the GitHub push fails, so the SPA must read the reason out of the
+ * publish result instead of guessing from the status code.
+ */
+export function publishErrorText(pub?: PublishResult | null): string {
+  if (!pub || pub.ok) return '';
+  if (pub.error) return pub.error;
+  const failed = (pub.files || []).filter((f) => f && f.ok === false);
+  if (!failed.length) return 'GitHub push failed';
+  return failed
+    .map((f) => `${f.file} — ${f.error || (f.status ? `HTTP ${f.status}` : 'unknown error')}`)
+    .join('; ');
+}
+
 // ---------------------------------------------------------------------------
 // API surface — mirrors the Worker routes 1:1
 // ---------------------------------------------------------------------------

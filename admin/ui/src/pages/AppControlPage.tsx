@@ -6,7 +6,7 @@
  *   · broadcast notice               → information.json-style payload
  */
 import React, { useEffect, useRef, useState } from 'react';
-import { api } from '../api';
+import { api, publishErrorText } from '../api';
 import type { AppVersionPayload, Bootstrap, BroadcastPayload, PanelImage, PublishResult } from '../types';
 import {
   Button,
@@ -150,7 +150,11 @@ export function AppControlPage(props: {
 
   function reportPublish(pub: PublishResult) {
     if (pub.ok) props.notify('Saved & published to GitHub', 'success');
-    else props.notify('Saved to KV but GitHub push FAILED: ' + (pub.error || ''), 'error');
+    else
+      props.notify(
+        'Saved to KV but GitHub push FAILED: ' + (publishErrorText(pub) || 'unknown error'),
+        'error',
+      );
   }
 
   return (

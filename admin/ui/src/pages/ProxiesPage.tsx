@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import type { Bootstrap, ServerConfig, ServerEntity } from '../types';
 import { isProxyNode } from '../types';
-import { api } from '../api';
+import { api, publishErrorText } from '../api';
 import {
   Badge,
   Button,
@@ -76,10 +76,11 @@ export function ProxiesPage(props: {
         ? await api.updateServer(editingServer.id, server)
         : await api.createServer(server);
       const pubOk = res.publish?.ok !== false;
+      const pubWhy = pubOk ? '' : ' — GitHub push FAILED: ' + (publishErrorText(res.publish) || 'unknown error');
       props.notify(
         pubOk
           ? `Proxy "${res.server.name}" saved — live in the app`
-          : `Proxy "${res.server.name}" saved — but GitHub push FAILED`,
+          : `Proxy "${res.server.name}" saved${pubWhy}`,
         pubOk ? 'success' : 'error',
       );
       await props.refresh();

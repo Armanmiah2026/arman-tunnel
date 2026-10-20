@@ -4,7 +4,7 @@
  * Verify (download + decrypt through the public CDN).
  */
 import React, { useState } from 'react';
-import { api } from '../api';
+import { api, publishErrorText } from '../api';
 import type { LastPublish, VerifyResult } from '../types';
 import { Badge, Button } from './ui';
 
@@ -23,7 +23,7 @@ export function PublishStrip(props: {
       if (res.publish.ok) {
         props.notify(`Published ${res.publish.nodes} node(s) to GitHub`, 'success');
       } else {
-        props.notify('GitHub push FAILED — see details below', 'error');
+        props.notify('GitHub push FAILED — ' + (publishErrorText(res.publish) || 'see details below'), 'error');
       }
       props.onChanged();
     } catch (e: any) {

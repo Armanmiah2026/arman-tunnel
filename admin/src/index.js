@@ -2726,13 +2726,57 @@ function cors(res) {
 }
 
 /**
- * Attach a machine-readable publish outcome AND make the HTTP status reflect
- * reality: data persisted but publish failed → 207-style warning payload with
- * `publish.ok:false` so the UI says "saved locally, GitHub push FAILED".
+ * Human-readable summary of a failed publish.
+ *
+ * WHY this exists: the SPA treats a response body with `ok:false` but no
+ * `error` field as an opaque failure and prints "Request failed (HTTP 200)"
+ * — because the HTTP status is 200 (the change WAS saved to KV) while the
+ * GitHub push failed. That message tells the admin nothing, so every
+ * publish-aware response must carry the real reason.
  */
-function publishAware(res, pub) {
-  if (pub && pub.attempted && !pub.ok) {
-    res.headers.set('X-Arman-Publish', 'failed');
+function publishErrorMessage(pub) {
+  if (!pub || pub.ok) return '';
+  if (pub.error) return String(pub.error);
+  const failed = (pub.files || []).filter((f) => f && f.ok === false);
+  if (failed.length) {
+    return (
+      'GitHub push failed: ' +
+      failed
+        .map((f) => `${f.file} — ${f.error || (f.status ? 'HTTP ' + f.status : 'unknown error')}`)
+        .join('; ')
+    );
   }
-  return res;
+  return 'GitHub push failed';
+}
+
+/**
+ * Attach a machine-readable publish outcome AND make the HTTP status reflect
+ * reality: data persisted but publish failed → the response keeps its 2xx
+ * status (the data IS in KV) but carries `publish.ok:false` plus a top-level
+ * `error` string, so the UI says "saved locally, GitHub push FAILED: <why>"
+ * instead of the useless "Request failed (HTTP 200)".
+ */
+async function publishAware(res, pub) {
+  if (!pub || pub.ok) return res;
+  res.headers.set('X-Arman-Publish', pub.attempted ? 'failed' : 'not-configured');
+  const msg = publishErrorMessage(pub);
+  if (!msg) return res;
+  // Re-send the body with the publish reason attached. The original body is
+  // consumed here, so a fresh Response is built from it.
+  let body;
+  try {
+    body = await res.json();
+  } catch {
+    return res;
+  }
+  if (!body || typeof body !== 'object' || body.error) return res;
+  body.error = msg;
+  const out = jsonResponse(body, res.status);
+  for (const [k, v] of res.headers.entries()) {
+    const key = k.toLowerCase();
+    if (key === 'content-type' || key === 'content-length') continue;
+    out.headers.set(k, v);
+  }
+  out.headers.set('X-Arman-Publish', pub.attempted ? 'failed' : 'not-configured');
+  return out;
 }

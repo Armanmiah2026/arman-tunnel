@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import type { Bootstrap, ServerConfig, ServerEntity } from '../types';
 import { isProxyNode } from '../types';
-import { api } from '../api';
+import { api, publishErrorText } from '../api';
 import {
   Badge,
   Button,
@@ -76,14 +76,15 @@ export function ServersPage(props: {
         : await api.createServer(server);
       // A failed GitHub push must surface — but it never masks the save.
       const pubOk = res.publish?.ok !== false;
+      const pubWhy = pubOk ? '' : ' — GitHub push FAILED: ' + (publishErrorText(res.publish) || 'unknown error');
       props.notify(
         editingServer
           ? pubOk
             ? `Server "${res.server.name}" saved`
-            : `Server "${res.server.name}" saved — but GitHub push FAILED`
+            : `Server "${res.server.name}" saved${pubWhy}`
           : pubOk
             ? `Server "${res.server.name}" added — live in the app, and ready for tweaks`
-            : `Server "${res.server.name}" added — but GitHub push FAILED`,
+            : `Server "${res.server.name}" added${pubWhy}`,
         pubOk ? 'success' : 'error',
       );
       await props.refresh();
