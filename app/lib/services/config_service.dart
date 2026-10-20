@@ -173,6 +173,30 @@ class ConfigService extends ChangeNotifier {
   int _installedVersionCode = kAppBuildNumber;
   String _installedVersionName = kAppVersion;
 
+  /// When the official feed was last fetched (auto or manual). The app
+  /// auto-refreshes on open, but at most once per [_autoRefreshInterval], so
+  /// reopening the app never hammers the CDN.
+  DateTime? _lastConfigFetchAt;
+  static const Duration _autoRefreshInterval = Duration(minutes: 5);
+
+  /// Split APKs report `base*10+1|2` (631/632 for build 63) while a
+  /// non-split APK reports the base code itself (63). Normalize both to the
+  /// BASE code so the panel publishes ONE number ("latest build code") and
+  /// the comparison stays correct for every install shape.
+  static int baseCode(int code) {
+    if (code <= 0) return 0;
+    return code >= 100 ? code ~/ 10 : code;
+  }
+
+  /// The installed build's BASE code (63 for a 631/632 split install).
+  int get installedBaseCode => baseCode(_installedVersionCode);
+
+  /// The installed version NAME as the platform reports it (1.0.57).
+  String get installedVersionName => _installedVersionName;
+
+  /// The installed version CODE as the platform reports it (631/632).
+  int get installedVersionCode => _installedVersionCode;
+
   /// Pre-warm the runtime build facts (called once at startup); the update
   /// gate in [updateRequiredByCode] then compares against the real installed
   /// version code instead of the compile-time constant.
@@ -321,9 +345,11 @@ class ConfigService extends ChangeNotifier {
   /// compares against `_installedVersionCode`, primed from the platform channel
   /// during startup (falls back to the compile-time constant until then).
   bool get updateRequiredByCode {
-    if (_minRequiredVersionCode > _installedVersionCode) return true;
+    if (baseCode(_minRequiredVersionCode) > installedBaseCode) return true;
     if (!_forceUpdate) return false;
-    if (_latestVersionCode > 0) return _latestVersionCode > _installedVersionCode;
+    if (_latestVersionCode > 0) {
+      return baseCode(_latestVersionCode) > installedBaseCode;
+    }
     if (_latestVersion.trim().isEmpty) return true; // legacy force-only feed
     return _compareVersionNames(_latestVersion, _installedVersionName) > 0;
   }
@@ -348,7 +374,7 @@ class ConfigService extends ChangeNotifier {
     if (updateRequiredByCode) return false;
     if (_updateUrl.isEmpty) return false;
     if (_latestVersionCode > 0) {
-      return _latestVersionCode > _installedVersionCode;
+      return baseCode(_latestVersionCode) > installedBaseCode;
     }
     if (_latestVersion.trim().isEmpty) return false;
     return _compareVersionNames(_latestVersion, _installedVersionName) > 0;
@@ -436,17 +462,21 @@ class ConfigService extends ChangeNotifier {
         _restoreSelectedServer(selectedId);
       }
 
-      // MANUAL-ONLY feed (user decision: no auto-update, ever). The automatic
-      // path fetches ONLY when the local cache is empty (fresh install /
-      // cleared data — without it the app would open blank forever); every
-      // other open shows the cached feed and waits for the user's explicit
-      // refresh (pull-to-refresh / drawer "Reload Configs").
-      final autoAllowed = _servers.isEmpty;
-      if (manual || autoAllowed) {
+      // AUTO-REFRESH on open (throttled). The feed used to be manual-only
+      // ("no auto-update, ever"), so a panel publish only reached the app
+      // after the user tapped Reload. Now every app open pulls the current
+      // feed — but at most once per [_autoRefreshInterval], so reopening the
+      // app never hammers the CDN. A manual refresh always fetches, whatever
+      // the clock says.
+      final now = DateTime.now();
+      final dueForAuto = _lastConfigFetchAt == null ||
+          now.difference(_lastConfigFetchAt!) > _autoRefreshInterval;
+      if (manual || dueForAuto) {
         lastRefreshFailed = !await fetchEncryptedGithubConfigs(manual: manual);
-        if (lastRefreshFailed && manual) {
+        if (!lastRefreshFailed) _lastConfigFetchAt = DateTime.now();
+        if (lastRefreshFailed) {
           // GitHub/CDN down entirely: the Worker's live fallback bundle is the
-          // remaining source — a manual refresh should always try it.
+          // remaining source — a refresh should always try it.
           await _refreshStaleCdn(-1);
         }
         // A manual refresh that actually fetched something is the signal that
@@ -505,10 +535,11 @@ class ConfigService extends ChangeNotifier {
       await _saveServers();
       // The GitHub raw CDN can serve a minutes-old file right after a panel
       // publish (its cache is keyed by path, so the ?cb= buster only busts the
-      // edge). On MANUAL refreshes cross-check the live count the panel
-      // reports and, when short, pull the always-fresh encrypted bundle
-      // straight from the Worker.
-      if (manual) await _refreshStaleCdn(officialConfigs.length);
+      // edge). Cross-check the live count the panel reports on EVERY fetch
+      // (auto or manual) and, when short, pull the always-fresh encrypted
+      // bundle straight from the Worker — that is what makes a panel publish
+      // reach the app without the user tapping Reload.
+      await _refreshStaleCdn(officialConfigs.length);
       return true;
     } catch (e) {
       debugPrint('Failed to fetch GitHub configs: $e');

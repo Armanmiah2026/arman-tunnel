@@ -73,10 +73,31 @@ class AboutScreen extends StatelessWidget {
                   const SizedBox(height: 4),
                   Center(
                     child: Text(
-                      'v$kAppVersion',
+                      // The REAL installed version (the platform reports it;
+                      // split APKs carry their own version name), with the
+                      // compiled-in constant as the fallback.
+                      'v${cfg.installedVersionName.isNotEmpty ? cfg.installedVersionName : kAppVersion}',
                       style: t.mono(size: 13, color: t.textMuted),
                     ),
                   ),
+                  // The version the panel wants this install on — shown right
+                  // under the app name so the user sees the pending update
+                  // without digging into the Build section.
+                  if (cfg.updateAvailableSoft || cfg.updateRequiredByCode) ...[
+                    const SizedBox(height: 4),
+                    Center(
+                      child: Text(
+                        'v${cfg.latestVersion} available'
+                        '${cfg.updateRequiredByCode ? ' — update required' : ''}',
+                        style: t.mono(
+                          size: 12,
+                          color: cfg.updateRequiredByCode
+                              ? t.warning
+                              : t.accent,
+                        ),
+                      ),
+                    ),
+                  ],
                   if (provider.isNotEmpty) ...[
                     const SizedBox(height: SnapDarkTokens.gapSm),
                     Center(
@@ -116,9 +137,11 @@ class AboutScreen extends StatelessWidget {
                     padding: EdgeInsets.zero,
                     divided: false,
                     children: [
-                      const SnapDarkStatRow(
+                      SnapDarkStatRow(
                         label: 'Version',
-                        value: kAppVersion,
+                        value: cfg.installedVersionName.isNotEmpty
+                            ? cfg.installedVersionName
+                            : kAppVersion,
                         mono: true,
                       ),
                       SnapDarkStatRow(

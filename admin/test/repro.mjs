@@ -46,6 +46,48 @@ globalThis.fetch = async (input, init) => {
         headers: { 'Content-Type': 'application/json' },
       });
     }
+    if (url.includes('/releases')) {
+      return new Response(
+        JSON.stringify([
+          {
+            tag_name: 'v1.0.57-b8',
+            name: 'SnapDark Tunnel 1.0.57 (build 8)',
+            published_at: '2026-10-20T21:43:30Z',
+            prerelease: false,
+            html_url: 'https://github.com/Armanmiah2026/arman-tunnel-configs/releases/tag/v1.0.57-b8',
+            assets: [
+              {
+                name: 'SnapDark-Tunnel-1.0.57-arm64-v8a.apk',
+                size: 33979155,
+                browser_download_url: 'https://github.com/x/SnapDark-Tunnel-1.0.57-arm64-v8a.apk',
+              },
+              {
+                name: 'SnapDark-Tunnel-1.0.57-armeabi-v7a.apk',
+                size: 33028299,
+                browser_download_url: 'https://github.com/x/SnapDark-Tunnel-1.0.57-armeabi-v7a.apk',
+              },
+            ],
+          },
+        ]),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      );
+    }
+    if (url.includes('/contents/version.json')) {
+      const payload = {
+        versionName: '1.0.57',
+        versionCode: 63,
+        arm64VersionCode: 632,
+        armv7VersionCode: 631,
+        apkDownloadUrl: 'https://github.com/x/SnapDark-Tunnel-1.0.57-arm64-v8a.apk',
+        publishedAt: '2026-10-20T21:43:30Z',
+      };
+      return new Response(
+        JSON.stringify({
+          content: btoa(JSON.stringify(payload)),
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      );
+    }
     if (init && init.method === 'PUT') {
       return new Response(
         JSON.stringify({ commit: { sha: 'deadbeef'.repeat(5) }, content: { sha: 'x' } }),
@@ -144,6 +186,12 @@ show('POST /api/login', login);
 
 const boot = await call('GET', '/api/bootstrap');
 console.log(`\n### GET /api/bootstrap -> ${boot.status}`);
+
+const releases = await call('GET', '/api/releases');
+show('GET /api/releases', releases);
+
+const build = await call('GET', '/api/latest-build');
+show('GET /api/latest-build', build);
 
 const server = await call('POST', '/api/servers', {
   name: 'Test Server',

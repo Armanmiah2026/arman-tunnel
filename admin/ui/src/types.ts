@@ -310,6 +310,38 @@ export interface AppVersionPayload {
   author?: string;
 }
 
+/** One downloadable file of a GitHub release. */
+export interface ReleaseAsset {
+  name: string;
+  size: number;
+  url: string;
+}
+
+/** A GitHub release on the configs repo (where CI publishes the APKs). */
+export interface ReleaseInfo {
+  tag: string;
+  name: string;
+  publishedAt: string;
+  prerelease: boolean;
+  url: string;
+  assets: ReleaseAsset[];
+}
+
+/**
+ * `version.json` — published by the APK build with the exact version name and
+ * the BASE build code (the app normalizes its split-ABI code back to it).
+ */
+export interface LatestBuild {
+  versionName: string;
+  versionCode: number;
+  arm64VersionCode?: number;
+  armv7VersionCode?: number;
+  apkDownloadUrl: string;
+  armv7ApkDownloadUrl?: string;
+  releaseUrl?: string;
+  publishedAt?: string;
+}
+
 /** information.json-style broadcast payload shown by the app's notice system. */
 export interface BroadcastPayload {
   showDialog?: boolean;

@@ -5,7 +5,7 @@
 ///   · pubspec.yaml (`version:`),
 ///   · android/local.properties (flutter.versionName / flutter.versionCode).
 /// Screens and services must import this file instead of hardcoding literals.
-const String kAppVersion = '1.0.55';
+const String kAppVersion = '1.0.57';
 
 /// The base build number from pubspec (`+59`). HOW ANDROID REPORTS IT:
 /// split-ABI APKs override the installed versionCode to `base*10+2` (arm64) /
@@ -15,4 +15,4 @@ const String kAppVersion = '1.0.55';
 /// `ConfigService.updateRequiredByCode` therefore compares against the runtime
 /// code from `installedPackageInfo` (see `ConfigService.primeInstallInfo`); do
 /// NOT wire this constant back into that comparison.
-const int kAppBuildNumber = 61;
+const int kAppBuildNumber = 63;

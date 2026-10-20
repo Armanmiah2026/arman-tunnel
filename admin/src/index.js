@@ -62,7 +62,15 @@ import {
   parseCookies,
   CSRF_COOKIE,
 } from './session.js';
-import { fetchPublished, githubConfigured, putFile, rawUrlFor, repoInfo } from './github.js';
+import {
+  fetchPublished,
+  githubConfigured,
+  listReleases,
+  putFile,
+  rawUrlFor,
+  readRepoFile,
+  repoInfo,
+} from './github.js';
 import { uploadToImgbb, decodeBase64Image } from './imgbb.js';
 import { PRIVACY_HTML, TERMS_HTML } from './legal.js';
 
@@ -325,6 +333,10 @@ async function handle(request, env, ctx) {
       return publishNow(auth, env);
     case 'POST /api/verify':
       return verifyPublished(auth, env);
+    case 'GET /api/releases':
+      return listAppReleases(env);
+    case 'GET /api/latest-build':
+      return latestAppBuild(env);
     case 'GET /api/export':
       return exportConfigs(env);
     case 'GET /api/backup':
@@ -2155,6 +2167,38 @@ async function verifyPublished(auth, env) {
 
 function sortById(arr) {
   return [...arr].sort((a, b) => String(a.id).localeCompare(String(b.id)));
+}
+
+// ---------------------------------------------------------------------------
+// App releases (the "Force update" auto-fill source)
+// ---------------------------------------------------------------------------
+
+/**
+ * The APK releases on the configs repo. The panel lists them so the admin can
+ * pick the build they want to push, instead of typing the version name, the
+ * build code and the download URL by hand (and getting one of them wrong).
+ */
+async function listAppReleases(env) {
+  try {
+    const releases = await listReleases(env);
+    return jsonResponse({ ok: true, releases });
+  } catch (e) {
+    return jsonResponse({ ok: false, error: String((e && e.message) || e) }, 502);
+  }
+}
+
+/**
+ * `version.json` — published by the APK build with the exact version name
+ * and the base build code. This is the authoritative "what is the latest
+ * build" answer, so the panel can fill every update field in one click.
+ */
+async function latestAppBuild(env) {
+  try {
+    const build = await readRepoFile(env, 'version.json');
+    return jsonResponse({ ok: true, build });
+  } catch (e) {
+    return jsonResponse({ ok: false, error: String((e && e.message) || e) }, 404);
+  }
 }
 
 // ---------------------------------------------------------------------------

@@ -16,9 +16,11 @@ import type {
   CapabilityType,
   CategoryEntity,
   DryRun,
+  LatestBuild,
   LicenseKey,
   PanelImage,
   PublishResult,
+  ReleaseInfo,
   RestoreResult,
   ServerConfig,
   ServerEntity,
@@ -237,6 +239,11 @@ export const api = {
   // Publish + verify
   publish: () => post<{ ok: boolean; publish: PublishResult }>('/api/publish'),
   verify: () => post<VerifyResult>('/api/verify'),
+
+  // App builds — the real releases on the configs repo, plus the exact
+  // version/build numbers the last CI build published (version.json).
+  releases: () => get<{ ok: true; releases: ReleaseInfo[] }>('/api/releases'),
+  latestBuild: () => get<{ ok: true; build: LatestBuild }>('/api/latest-build'),
 
   exportUrl: '/api/export',
 

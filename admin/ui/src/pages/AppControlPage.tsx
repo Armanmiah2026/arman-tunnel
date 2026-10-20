@@ -7,7 +7,15 @@
  */
 import React, { useEffect, useRef, useState } from 'react';
 import { api, publishErrorText } from '../api';
-import type { AppVersionPayload, Bootstrap, BroadcastPayload, PanelImage, PublishResult } from '../types';
+import type {
+  AppVersionPayload,
+  Bootstrap,
+  BroadcastPayload,
+  LatestBuild,
+  PanelImage,
+  PublishResult,
+  ReleaseInfo,
+} from '../types';
 import {
   Button,
   Card,
@@ -18,6 +26,7 @@ import {
   SectionTitle,
   Switch,
   TextArea,
+  UrlField,
 } from '../components/ui';
 
 export function AppControlPage(props: {
@@ -63,6 +72,31 @@ export function AppControlPage(props: {
   );
 
   const [busy, setBusy] = useState<'settings' | 'broadcast' | 'brand' | null>(null);
+
+  // The real app builds (GitHub releases + the version.json the CI build
+  // publishes). They fill the update fields so the admin never types a
+  // version/code/URL by hand.
+  const [releases, setReleases] = useState<ReleaseInfo[]>([]);
+  const [latestBuild, setLatestBuild] = useState<LatestBuild | null>(null);
+  const [buildBusy, setBuildBusy] = useState(false);
+
+  /**
+   * Typing a new version name auto-fills the download URL from the release
+   * that carries it — change the version, the link follows.
+   */
+  function onVersionNameChange(v: string) {
+    setLatestVersion(v);
+    const wanted = v.trim();
+    if (!wanted) return;
+    for (const rel of releases) {
+      for (const asset of rel.assets) {
+        if (versionFromAsset(asset.name) === wanted || versionFromTag(rel.tag) === wanted) {
+          if (!/armeabi/i.test(asset.name)) setUpdateUrl(asset.url);
+          return;
+        }
+      }
+    }
+  }
 
   async function saveSettings(appLocked: boolean) {
     setBusy('settings');
@@ -183,14 +217,51 @@ export function AppControlPage(props: {
 
       {/* Force update */}
       <Card>
-        <SectionTitle title="Force update" caption="Older app versions show a blocking update dialog when this is on." />
+        <SectionTitle title="Force update" caption="Older app versions show a blocking update dialog when this is on. Pick a build below and every field fills itself." />
         <div className="space-y-3">
           <Switch label="Require update" checked={forceUpdate} onChange={setForceUpdate} />
+          <BuildPicker
+            releases={releases}
+            latestBuild={latestBuild}
+            busy={buildBusy}
+            onPick={(v) => {
+              if (v.versionName) setLatestVersion(v.versionName);
+              if (v.versionCode) setVersionCode(String(v.versionCode));
+              if (v.apkDownloadUrl) setUpdateUrl(v.apkDownloadUrl);
+            }}
+            onReleases={setReleases}
+            onLatestBuild={setLatestBuild}
+            notify={props.notify}
+          />
           <Grid cols={2}>
-            <Field label="Latest version name" value={latestVersion} onChange={setLatestVersion} placeholder="1.0.27" />
-            <Field label="Latest version code" value={versionCode} onChange={(v) => setVersionCode(v.replace(/\D/g, ''))} placeholder="33" hint="Numeric build number" />
-            <Field label="Minimum allowed code" value={minCode} onChange={(v) => setMinCode(v.replace(/\D/g, ''))} placeholder="32" />
-            <Field label="APK download URL" value={updateUrl} onChange={setUpdateUrl} type="url" placeholder="https://github.com/…/apk-release.apk" />
+            <Field
+              label="Latest version name"
+              value={latestVersion}
+              onChange={onVersionNameChange}
+              placeholder="1.0.57"
+              hint={latestVersion ? undefined : 'Shown in the app under the logo'}
+            />
+            <Field
+              label="Latest version code"
+              value={versionCode}
+              onChange={(v) => setVersionCode(v.replace(/\D/g, ''))}
+              placeholder="63"
+              hint="Base build number (pubspec +63) — not the split-ABI code"
+            />
+            <Field
+              label="Minimum allowed code"
+              value={minCode}
+              onChange={(v) => setMinCode(v.replace(/\D/g, ''))}
+              placeholder="63"
+              hint="Installs below this code are blocked"
+            />
+            <UrlField
+              label="APK download URL"
+              value={updateUrl}
+              onChange={setUpdateUrl}
+              placeholder="https://github.com/…/SnapDark-Tunnel-1.0.57-arm64-v8a.apk"
+              hint="arm64-v8a unless you need the 32-bit build"
+            />
           </Grid>
           <Field label="Update message shown to users" value={updateMessage} onChange={setUpdateMessage} />
           <Button variant="primary" busy={busy === 'settings'} onClick={() => saveSettings(props.data.settings.appLocked)}>
@@ -232,7 +303,7 @@ export function AppControlPage(props: {
         <div className="space-y-3">
           <Field label="Provider name" value={brandName} onChange={setBrandName} placeholder="Arman Tunnel" />
           <Grid cols={2}>
-            <Field label="Contact link" value={brandContact} onChange={setBrandContact} type="url" placeholder="https://t.me/…" />
+            <UrlField label="Contact link" value={brandContact} onChange={setBrandContact} placeholder="https://t.me/…" />
             <Field label="WhatsApp" value={brandWhatsapp} onChange={setBrandWhatsapp} placeholder="+8801639111636" />
           </Grid>
           <Field label="Short description" value={brandDesc} onChange={setBrandDesc} placeholder="Encrypted config delivery from GitHub." />
@@ -256,7 +327,7 @@ export function AppControlPage(props: {
             <Grid cols={2}>
               <Field label="Title" value={dialogTitle} onChange={setDialogTitle} />
               <Field label="Action button label" value={actionText} onChange={setActionText} placeholder="Join channel" />
-              <Field label="Action button URL" value={actionUrl} onChange={setActionUrl} type="url" placeholder="https://t.me/…" />
+              <UrlField label="Action button URL" value={actionUrl} onChange={setActionUrl} placeholder="https://t.me/…" />
             </Grid>
           )}
           {showDialog && (
@@ -286,6 +357,167 @@ function formatPayloadDefs(defs: Record<string, string>): string {
   return Object.entries(defs)
     .map(([k, v]) => `${k}=${v}`)
     .join('\n');
+}
+
+/** "1.0.57" out of a release tag ("v1.0.57-b8"). */
+function versionFromTag(tag: string): string {
+  const m = /(\d+\.\d+\.\d+)/.exec(tag || '');
+  return m ? m[1] : '';
+}
+
+/** "1.0.57" out of an asset name ("SnapDark-Tunnel-1.0.57-arm64-v8a.apk"). */
+function versionFromAsset(name: string): string {
+  const m = /(\d+\.\d+\.\d+)/.exec(name || '');
+  return m ? m[1] : '';
+}
+
+function formatBytes(n: number): string {
+  if (!n) return '';
+  if (n < 1024 * 1024) return `${Math.round(n / 1024)} KB`;
+  return `${(n / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+/**
+ * Build picker — the "auto link" side of the Force update card.
+ *
+ * Two sources, both read from the configs repo (where CI publishes the APKs):
+ *   · `version.json`  — the exact version name + BASE build code of the last
+ *     CI build. One click fills the version, the code and the arm64 URL.
+ *   · the releases    — every published build with its APK assets. Clicking an
+ *     asset fills the version name and that APK's download URL.
+ */
+function BuildPicker(props: {
+  releases: ReleaseInfo[];
+  latestBuild: LatestBuild | null;
+  busy: boolean;
+  onPick: (v: { versionName: string; versionCode?: number; apkDownloadUrl?: string }) => void;
+  onReleases: (r: ReleaseInfo[]) => void;
+  onLatestBuild: (b: LatestBuild | null) => void;
+  notify: (message: string, kind?: 'success' | 'error' | 'info') => void;
+}) {
+  const loadLatest = async () => {
+    props.onLatestBuild(null);
+    try {
+      const res = await api.latestBuild();
+      const b = res.build;
+      props.onLatestBuild(b);
+      props.onPick({
+        versionName: b.versionName || '',
+        versionCode: b.versionCode,
+        apkDownloadUrl: b.apkDownloadUrl || '',
+      });
+      props.notify(
+        `Filled from the latest build: v${b.versionName} (code ${b.versionCode})`,
+        'success',
+      );
+    } catch (e: any) {
+      // No version.json yet (older CI) → fall back to the newest release.
+      try {
+        const rel = await api.releases();
+        props.onReleases(rel.releases);
+        const asset = newestArm64(rel.releases);
+        if (asset) {
+          props.onPick({
+            versionName: versionFromAsset(asset.name),
+            apkDownloadUrl: asset.url,
+          });
+          props.notify(`Filled from the latest release: ${asset.name}`, 'success');
+        } else {
+          props.notify(e?.message || 'Could not load the latest build', 'error');
+        }
+      } catch (e2: any) {
+        props.notify(e2?.message || 'Could not load the latest build', 'error');
+      }
+    }
+  };
+
+  const loadReleases = async () => {
+    try {
+      const res = await api.releases();
+      props.onReleases(res.releases);
+      if (res.releases.length === 0) props.notify('No releases found yet', 'info');
+    } catch (e: any) {
+      props.notify(e?.message || 'Could not load the releases', 'error');
+    }
+  };
+
+  const b = props.latestBuild;
+  return (
+    <div className="rounded-2xl border border-line bg-bg p-3">
+      <div className="mb-2 flex flex-wrap items-center gap-2">
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-hint">
+          App build
+        </p>
+        <Button small variant="primary" busy={props.busy} onClick={() => void loadLatest()}>
+          Fill from latest build
+        </Button>
+        <Button small busy={props.busy} onClick={() => void loadReleases()}>
+          Browse releases
+        </Button>
+        {b && (
+          <span className="text-[11px] text-hint">
+            latest: v{b.versionName} · code {b.versionCode}
+            {b.publishedAt ? ` · ${new Date(b.publishedAt).toLocaleString()}` : ''}
+          </span>
+        )}
+      </div>
+      {props.releases.length > 0 && (
+        <div className="space-y-2">
+          {props.releases.map((rel) => (
+            <div key={rel.tag} className="rounded-xl border border-line bg-surface2 p-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="font-mono text-xs text-ink">{rel.tag}</span>
+                <span className="text-[11px] text-hint">
+                  {rel.publishedAt ? new Date(rel.publishedAt).toLocaleString() : ''}
+                </span>
+                <a
+                  href={rel.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[11px] text-accent hover:underline"
+                >
+                  release page
+                </a>
+              </div>
+              <div className="mt-1 flex flex-wrap gap-2">
+                {rel.assets.map((asset) => (
+                  <button
+                    key={asset.url}
+                    type="button"
+                    onClick={() =>
+                      props.onPick({
+                        versionName: versionFromAsset(asset.name) || versionFromTag(rel.tag),
+                        apkDownloadUrl: asset.url,
+                      })
+                    }
+                    title="Use this APK"
+                    className="rounded-lg border border-line bg-bg px-2 py-1 font-mono text-[11px] text-muted transition hover:border-accent hover:text-accent"
+                  >
+                    {asset.name}
+                    {asset.size ? ` · ${formatBytes(asset.size)}` : ''}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      <p className="mt-2 text-[11px] text-hint">
+        The build code is the BASE number from pubspec (63) — the app maps its
+        split-ABI code (631/632) back to it before comparing.
+      </p>
+    </div>
+  );
+}
+
+/** The newest arm64 APK across the given releases. */
+function newestArm64(releases: ReleaseInfo[]): { name: string; url: string } | null {
+  for (const rel of releases) {
+    for (const asset of rel.assets) {
+      if (/arm64/i.test(asset.name)) return { name: asset.name, url: asset.url };
+    }
+  }
+  return null;
 }
 
 /**
@@ -459,7 +691,7 @@ function WallpaperGallery(props: {
                 onChange={(v) => renameAt(selected, v)}
                 placeholder={autoTitle(selected)}
               />
-              <Field
+              <UrlField
                 label="Wallpaper URL"
                 value={current.url}
                 onChange={(v) => setUrlAt(selected, v)}

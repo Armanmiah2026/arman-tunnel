@@ -2,7 +2,7 @@
  * Small shared primitives for the admin panel. Everything visual derives from
  * the tokens in index.css — violet accent, amber for warnings, no other hues.
  */
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 // ---------------------------------------------------------------------------
 // Layout
@@ -115,6 +115,92 @@ export function Field(props: {
         </span>
       )}
     </label>
+  );
+}
+
+/** Normalize a typed link: no scheme → https, bare domain → https://domain. */
+export function normalizeUrl(raw: string): string {
+  const v = (raw || '').trim();
+  if (!v) return '';
+  if (/^[a-z][a-z0-9+.-]*:/i.test(v)) return v;
+  return `https://${v.replace(/^\/+/, '')}`;
+}
+
+/**
+ * A URL input that behaves like a link: it shows the target, opens on click
+ * and normalizes a scheme-less value to https:// when the admin leaves the
+ * field. Every URL the panel stores (APK download, contact links, banner
+ * action, wallpaper) uses this so a typo can never ship a dead link.
+ */
+export function UrlField(props: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  hint?: string;
+  openLabel?: string;
+}) {
+  const [text, setText] = useState(props.value);
+  useEffect(() => {
+    setText(props.value);
+  }, [props.value]);
+
+  const target = normalizeUrl(text);
+  const open = () => {
+    if (!target) return;
+    window.open(target, '_blank', 'noopener,noreferrer');
+  };
+
+  return (
+    <div>
+      <span className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-muted">
+        {props.label}
+      </span>
+      <div className="flex gap-2">
+        <input
+          type="text"
+          value={text}
+          onChange={(e) => {
+            setText(e.target.value);
+            props.onChange(e.target.value);
+          }}
+          onBlur={() => {
+            // Leave the field → normalise the link (scheme-less → https://).
+            if (!text.trim()) return;
+            const fixed = normalizeUrl(text);
+            if (fixed !== text) {
+              setText(fixed);
+              props.onChange(fixed);
+            }
+          }}
+          placeholder={props.placeholder}
+          spellCheck={false}
+          autoComplete="off"
+          className={`${inputCls} font-mono text-xs`}
+        />
+        <button
+          type="button"
+          onClick={open}
+          disabled={!target}
+          title={target || 'No link yet'}
+          className="shrink-0 rounded-xl border border-line bg-surface2 px-3 text-[11px] font-bold text-muted transition hover:border-accent hover:text-accent disabled:opacity-40"
+        >
+          {props.openLabel || 'Open'}
+        </button>
+      </div>
+      {target && (
+        <a
+          href={target}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-1 block truncate text-[11px] text-hint hover:text-accent"
+          title={target}
+        >
+          {target}
+        </a>
+      )}
+      {props.hint && <span className="mt-1 block text-[11px] text-hint">{props.hint}</span>}
+    </div>
   );
 }
 

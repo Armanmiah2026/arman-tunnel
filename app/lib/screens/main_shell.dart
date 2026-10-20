@@ -5,8 +5,10 @@ import 'package:provider/provider.dart';
 import '../app_meta.dart';
 export '../app_meta.dart' show kAppVersion, kAppBuildNumber;
 import '../models/vpn_state.dart';
+import '../services/config_service.dart';
 import '../theme/snapdark_theme.dart';
 import '../widgets/app_toast.dart';
+import '../widgets/app_update_sheet.dart';
 import '../widgets/snapdark/about_dialog.dart';
 import '../widgets/snapdark/bottom_nav_bar.dart';
 import '../widgets/snapdark/navigation_drawer.dart';
@@ -43,6 +45,13 @@ class _MainShellState extends State<MainShell>
   SnapDarkTab _tab = SnapDarkTab.home;
   DateTime? _lastBackPress;
 
+  /// Force update: the panel's "Require update" must block the app at START,
+  /// not only when the user taps Connect. The settings bundle arrives a
+  /// moment after the shell mounts, so the check re-runs on every config
+  /// change until it fires (then it never shows twice).
+  bool _forceUpdateShown = false;
+  ConfigService? _cfgForUpdate;
+
   bool get _isDrawerOpen => _drawerController.value > 0;
 
   @override
@@ -59,10 +68,29 @@ class _MainShellState extends State<MainShell>
       curve: Curves.easeOutCubic,
       reverseCurve: Curves.easeInCubic,
     );
+    final cfg = context.read<ConfigService>();
+    cfg.addListener(_maybeShowForceUpdate);
+    _cfgForUpdate = cfg;
+    WidgetsBinding.instance.addPostFrameCallback((_) => _maybeShowForceUpdate());
+  }
+
+  /// Show the blocking update dialog as soon as the panel says this build is
+  /// too old. Non-dismissible - the app stays blocked until the user installs
+  /// the new build.
+  void _maybeShowForceUpdate() {
+    if (_forceUpdateShown || !mounted) return;
+    final cfg = _cfgForUpdate ?? context.read<ConfigService>();
+    if (!cfg.updateRequiredByCode) return;
+    _forceUpdateShown = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      await showAppUpdate(context, cfg, forced: true);
+    });
   }
 
   @override
   void dispose() {
+    _cfgForUpdate?.removeListener(_maybeShowForceUpdate);
     _drawerController.dispose();
     super.dispose();
   }

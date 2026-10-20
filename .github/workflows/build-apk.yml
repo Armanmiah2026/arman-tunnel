@@ -209,3 +209,37 @@ jobs:
             --notes "Automated CI build. Install the APK matching your device: **arm64-v8a** (most phones) or armeabi-v7a (older/32-bit). Signed with the release key; config feed is cert-bound to it." \
           || gh release upload "$TAG" dist/*.apk --repo Armanmiah2026/arman-tunnel-configs --clobber
           echo "Release: https://github.com/Armanmiah2026/arman-tunnel-configs/releases/tag/$TAG"
+
+      # The panel's "Force update" card auto-fills from this file: the exact
+      # version name, the BASE build code (the app normalizes its split-ABI
+      # code 631/632 back to 63 before comparing) and the download URLs.
+      # Without it the admin has to type all three by hand — and one typo
+      # means the app blocks on a version that does not exist.
+      - name: Publish version.json (the panel's auto-fill source)
+        if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ secrets.CONFIGS_PAT }}
+        run: |
+          set -euo pipefail
+          REPO="Armanmiah2026/arman-tunnel-configs"
+          TAG="v${APP_VERSION}-b${{ github.run_number }}"
+          BASE_CODE=$(node -e "const m=require('fs').readFileSync('pubspec.yaml','utf8').match(/^version:\s*([0-9.]+)\+(\d+)/m);console.log(m[2])")
+          cat > /tmp/version.json <<EOF
+          {
+            "versionName": "${APP_VERSION}",
+            "versionCode": ${BASE_CODE},
+            "arm64VersionCode": $((BASE_CODE * 10 + 2)),
+            "armv7VersionCode": $((BASE_CODE * 10 + 1)),
+            "apkDownloadUrl": "https://github.com/${REPO}/releases/download/${TAG}/SnapDark-Tunnel-${APP_VERSION}-arm64-v8a.apk",
+            "armv7ApkDownloadUrl": "https://github.com/${REPO}/releases/download/${TAG}/SnapDark-Tunnel-${APP_VERSION}-armeabi-v7a.apk",
+            "releaseUrl": "https://github.com/${REPO}/releases/tag/${TAG}",
+            "publishedAt": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          }
+          EOF
+          SHA=$(gh api "repos/${REPO}/contents/version.json" --jq '.sha' 2>/dev/null || true)
+          jq -n --arg content "$(base64 -w0 /tmp/version.json)" \
+                --arg message "chore(release): version.json ${APP_VERSION} (build ${{ github.run_number }})" \
+                --arg sha "$SHA" \
+                '{message:$message, content:$content, branch:"main"} + (if $sha == "" then {} else {sha:$sha} end)' > /tmp/version-body.json
+          gh api --method PUT "repos/${REPO}/contents/version.json" --input /tmp/version-body.json
+          echo "version.json published: ${APP_VERSION} (base code ${BASE_CODE})"

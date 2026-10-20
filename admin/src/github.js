@@ -76,6 +76,62 @@ async function currentSha(env, file) {
 }
 
 /**
+ * The releases on the configs repo (where CI publishes the app APKs).
+ *
+ * The admin panel uses them to fill the "Force update" fields with REAL
+ * values — the version name, the download URL and (via version.json) the
+ * build code — instead of the admin typing them by hand and getting them
+ * wrong.
+ */
+export async function listReleases(env, perPage = 5) {
+  if (!githubConfigured(env)) {
+    throw new Error('GitHub is not configured (need GITHUB_TOKEN + GITHUB_REPO)');
+  }
+  const { repo } = repoInfo(env);
+  const res = await fetch(`${API}/repos/${repo}/releases?per_page=${perPage}`, {
+    headers: headers(env),
+  });
+  if (!res.ok) throw new Error(`Could not list releases: ${await readError(res)}`);
+  const list = await res.json();
+  if (!Array.isArray(list)) throw new Error('Unexpected releases payload');
+  return list.map((r) => ({
+    tag: r.tag_name || '',
+    name: r.name || r.tag_name || '',
+    publishedAt: r.published_at || '',
+    prerelease: !!r.prerelease,
+    url: r.html_url || '',
+    assets: (r.assets || []).map((a) => ({
+      name: a.name || '',
+      size: a.size || 0,
+      url: a.browser_download_url || '',
+    })),
+  }));
+}
+
+/**
+ * Read one file from the configs repo through the GitHub API (not the CDN, so
+ * the panel sees the fresh copy right after CI wrote it). `version.json` is
+ * published by the APK build with the exact version name + build code.
+ */
+export async function readRepoFile(env, file) {
+  if (!githubConfigured(env)) {
+    throw new Error('GitHub is not configured (need GITHUB_TOKEN + GITHUB_REPO)');
+  }
+  const { repo, branch } = repoInfo(env);
+  const url = `${API}/repos/${repo}/contents/${encodeURI(file)}?ref=${encodeURIComponent(branch)}`;
+  const res = await fetch(url, { headers: headers(env) });
+  if (res.status === 404) throw new Error(`${file} not found in ${repo}`);
+  if (!res.ok) throw new Error(`Could not read ${file}: ${await readError(res)}`);
+  const j = await res.json();
+  const raw = j.content ? atob(String(j.content).replace(/\s/g, '')) : '';
+  try {
+    return JSON.parse(raw);
+  } catch {
+    throw new Error(`${file} is not valid JSON`);
+  }
+}
+
+/**
  * Write one file. Retries the 409/422 sha race (another publish landed between
  * our read and our write) instead of dropping the update on the floor.
  */
