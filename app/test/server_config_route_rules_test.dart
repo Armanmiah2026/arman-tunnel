@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sensei_tunnel/models/server_config.dart';
+import 'package:snapdark_tunnel/models/server_config.dart';
 
 void main() {
   const server = ServerConfig(

@@ -42,7 +42,7 @@
     </queries>
 
     <application
-        android:label="Arman Tunnel"
+        android:label="SnapDark Tunnel"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher_round"
@@ -106,7 +106,7 @@
             </intent-filter>
 
             <!-- Config files: .st / .txt / .cfg shared or tapped in a file
-                 manager must offer SenseiTunnel. content:// carries a MIME
+                 manager must offer SnapDarkTunnel. content:// carries a MIME
                  type (text/plain or octet-stream for unknown extensions);
                  file:// needs the extension pattern for .st. -->
             <intent-filter>
@@ -125,7 +125,7 @@
                 <data android:pathPattern=".*\\.st" />
             </intent-filter>
 
-            <!-- "Share to SenseiTunnel": chat apps sharing config text -->
+            <!-- "Share to SnapDarkTunnel": chat apps sharing config text -->
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -135,7 +135,7 @@
 
         <!-- VPN Service -->
         <service
-            android:name=".SenseiTunnelVpnService"
+            android:name=".SnapDarkTunnelVpnService"
             android:exported="false"
             android:foregroundServiceType="specialUse"
             android:permission="android.permission.BIND_VPN_SERVICE">

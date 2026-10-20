@@ -1,4 +1,4 @@
-# Deploys the Arman Tunnel admin panel: Worker + React static assets +
+# Deploys the SnapDark Tunnel admin panel: Worker + React static assets +
 # custom domain admin.cloudv2roy.xyz (routes live in wrangler.toml).
 #
 # Runs on any push touching admin/ — CI has the fast network that pulls

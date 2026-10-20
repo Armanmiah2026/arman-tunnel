@@ -1,6 +1,6 @@
-name: sensei_tunnel
-description: Sensei Tunnel - A powerful VPN client based on Xray-core
-version: 1.0.56+62
+name: snapdark_tunnel
+description: SnapDark Tunnel - A powerful VPN client based on Xray-core
+version: 1.0.57+63
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -31,6 +31,6 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/images/sensei_logo.png
-    - assets/images/sensei_mark.png
-    - assets/images/sensei_splash.png
+    - assets/images/snapdark_logo.png
+    - assets/images/snapdark_mark.png
+    - assets/images/snapdark_splash.png

@@ -7,6 +7,6 @@
     <item>
         <bitmap
             android:gravity="center"
-            android:src="@drawable/sensei_splash" />
+            android:src="@drawable/snapdark_splash" />
     </item>
 </layer-list>

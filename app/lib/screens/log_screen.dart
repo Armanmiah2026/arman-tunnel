@@ -6,10 +6,10 @@ import 'package:provider/provider.dart';
 
 import '../services/location_service.dart';
 import '../services/log_service.dart';
-import '../theme/sensei_theme.dart';
+import '../theme/snapdark_theme.dart';
 import '../utils/banner_renderer.dart';
 import '../widgets/app_toast.dart';
-import '../widgets/ui/sensei_controls.dart';
+import '../widgets/ui/snapdark_controls.dart';
 import 'main_shell.dart';
 
 /// Severity buckets used to colour log lines.
@@ -149,7 +149,7 @@ class _LogScreenState extends State<LogScreen> {
             icon: const Icon(Icons.delete_outline_rounded),
             onPressed: () => context.read<LogService>().clear(),
           ),
-          const SizedBox(width: SenseiTokens.gapXs),
+          const SizedBox(width: SnapDarkTokens.gapXs),
         ],
       ),
       body: DecoratedBox(
@@ -165,7 +165,7 @@ class _LogScreenState extends State<LogScreen> {
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(
-                maxWidth: SenseiTokens.maxContentWidth,
+                maxWidth: SnapDarkTokens.maxContentWidth,
               ),
               // The cap MUST be computed from the Column's own slot: RenderFlex
               // hands non-flex children an INFINITE max height (that is exactly
@@ -190,10 +190,10 @@ class _LogScreenState extends State<LogScreen> {
                         ),
                         child: SingleChildScrollView(
                           padding: const EdgeInsets.fromLTRB(
-                            SenseiTokens.pageInset,
-                            SenseiTokens.gapSm,
-                            SenseiTokens.pageInset,
-                            SenseiTokens.gapSm,
+                            SnapDarkTokens.pageInset,
+                            SnapDarkTokens.gapSm,
+                            SnapDarkTokens.pageInset,
+                            SnapDarkTokens.gapSm,
                           ),
                           child: _deviceCard(),
                         ),
@@ -201,16 +201,16 @@ class _LogScreenState extends State<LogScreen> {
                   Expanded(
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(
-                        SenseiTokens.pageInset,
-                        SenseiTokens.gapXs,
-                        SenseiTokens.pageInset,
-                        SenseiTokens.gapXxl * 2,
+                        SnapDarkTokens.pageInset,
+                        SnapDarkTokens.gapXs,
+                        SnapDarkTokens.pageInset,
+                        SnapDarkTokens.gapXxl * 2,
                       ),
                       child: Consumer<LogService>(
                         builder: (_, logService, __) {
                           final entries = logService.entries;
                           if (entries.isEmpty) {
-                            return const SenseiEmptyState(
+                            return const SnapDarkEmptyState(
                               icon: Icons.terminal_rounded,
                               title: 'No logs yet',
                               message:
@@ -219,10 +219,10 @@ class _LogScreenState extends State<LogScreen> {
                             );
                           }
                           _scrollToEndSoon();
-                          return SenseiCard(
+                          return SnapDarkCard(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: SenseiTokens.gapMd,
-                              vertical: SenseiTokens.gapSm,
+                              horizontal: SnapDarkTokens.gapMd,
+                              vertical: SnapDarkTokens.gapSm,
                             ),
                             child: ListView.builder(
                               controller: _scroll,
@@ -259,21 +259,21 @@ class _LogScreenState extends State<LogScreen> {
         ? ''
         : [info.city, info.country].where((s) => s.isNotEmpty).join(', ');
 
-    return SenseiCard(
+    return SnapDarkCard(
       padding: EdgeInsets.zero,
       child: Column(
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(
-              SenseiTokens.gap,
-              SenseiTokens.gapMd,
-              SenseiTokens.gapSm,
-              SenseiTokens.gapSm,
+              SnapDarkTokens.gap,
+              SnapDarkTokens.gapMd,
+              SnapDarkTokens.gapSm,
+              SnapDarkTokens.gapSm,
             ),
             child: Row(
               children: [
                 Icon(Icons.smartphone_rounded, color: t.accent, size: 16),
-                const SizedBox(width: SenseiTokens.gapSm),
+                const SizedBox(width: SnapDarkTokens.gapSm),
                 Expanded(
                   child: Text('DEVICE & SESSION', style: t.overline),
                 ),
@@ -290,11 +290,11 @@ class _LogScreenState extends State<LogScreen> {
             ),
           ),
           Divider(height: 1, color: t.border),
-          const SenseiStatRow(
+          const SnapDarkStatRow(
             label: 'App',
-            value: 'Arman Tunnel v$kAppVersion',
+            value: 'SnapDark Tunnel v$kAppVersion',
           ),
-          SenseiStatRow(
+          SnapDarkStatRow(
             label: 'System',
             value:
                 '${Platform.operatingSystem} ${Platform.operatingSystemVersion}',
@@ -302,23 +302,23 @@ class _LogScreenState extends State<LogScreen> {
           ),
           FutureBuilder<String>(
             future: _localIps,
-            builder: (_, snap) => SenseiStatRow(
+            builder: (_, snap) => SnapDarkStatRow(
               label: 'Local IP',
               value: snap.data ?? '…',
               mono: true,
               selectable: true,
             ),
           ),
-          SenseiStatRow(
+          SnapDarkStatRow(
             label: 'Public IP',
             value: publicIp,
             mono: true,
             selectable: true,
           ),
-          if (place.isNotEmpty) SenseiStatRow(label: 'Location', value: place),
+          if (place.isNotEmpty) SnapDarkStatRow(label: 'Location', value: place),
           if (info?.isp.isNotEmpty == true)
-            SenseiStatRow(label: 'ISP', value: info!.isp),
-          const SizedBox(height: SenseiTokens.gapSm),
+            SnapDarkStatRow(label: 'ISP', value: info!.isp),
+          const SizedBox(height: SnapDarkTokens.gapSm),
         ],
       ),
     );
@@ -353,12 +353,12 @@ class _LogLine extends StatelessWidget {
         }
       }
       return Padding(
-        padding: const EdgeInsets.symmetric(vertical: SenseiTokens.gapSm),
+        padding: const EdgeInsets.symmetric(vertical: SnapDarkTokens.gapSm),
         child: Container(
-          padding: const EdgeInsets.all(SenseiTokens.gapMd),
+          padding: const EdgeInsets.all(SnapDarkTokens.gapMd),
           decoration: BoxDecoration(
             color: t.accentWash,
-            borderRadius: SenseiTokens.brSm,
+            borderRadius: SnapDarkTokens.brSm,
             border: Border.all(color: t.accent.withValues(alpha: 0.3)),
           ),
           child: Column(
@@ -371,7 +371,7 @@ class _LogLine extends StatelessWidget {
                   Text(heading, style: t.overline),
                 ],
               ),
-              const SizedBox(height: SenseiTokens.gapSm),
+              const SizedBox(height: SnapDarkTokens.gapSm),
               buildBannerWidget(context, html),
             ],
           ),

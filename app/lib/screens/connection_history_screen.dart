@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../services/session_history.dart';
-import '../theme/sensei_theme.dart';
+import '../theme/snapdark_theme.dart';
 import '../utils/format.dart';
-import '../widgets/ui/sensei_controls.dart';
+import '../widgets/ui/snapdark_controls.dart';
 
 /// Connection history: real per-session records (server, start, duration,
 /// traffic), newest first. The old keyword-filter over the log mistook config
@@ -32,7 +32,7 @@ class ConnectionHistoryScreen extends StatelessWidget {
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(
-                maxWidth: SenseiTokens.maxContentWidth,
+                maxWidth: SnapDarkTokens.maxContentWidth,
               ),
               child: ListenableBuilder(
                 listenable: SessionHistory.instance,
@@ -44,7 +44,7 @@ class ConnectionHistoryScreen extends StatelessWidget {
                   ];
 
                   if (sessions.isEmpty) {
-                    return const SenseiEmptyState(
+                    return const SnapDarkEmptyState(
                       icon: Icons.history_rounded,
                       title: 'No history yet',
                       message: 'Sessions appear here once you connect — with '
@@ -54,10 +54,10 @@ class ConnectionHistoryScreen extends StatelessWidget {
 
                   return ListView.builder(
                     padding: const EdgeInsets.fromLTRB(
-                      SenseiTokens.pageInset,
-                      SenseiTokens.gapMd,
-                      SenseiTokens.pageInset,
-                      SenseiTokens.gapXxl,
+                      SnapDarkTokens.pageInset,
+                      SnapDarkTokens.gapMd,
+                      SnapDarkTokens.pageInset,
+                      SnapDarkTokens.gapXxl,
                     ),
                     itemCount: sessions.length,
                     itemBuilder: (_, i) => _SessionRow(
@@ -137,10 +137,10 @@ class _SessionRow extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(width: SenseiTokens.gapSm),
+          const SizedBox(width: SnapDarkTokens.gapSm),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.only(bottom: SenseiTokens.gapMd),
+              padding: const EdgeInsets.only(bottom: SnapDarkTokens.gapMd),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -185,7 +185,7 @@ class _SessionRow extends StatelessWidget {
                   ),
                   const SizedBox(height: 3),
                   Wrap(
-                    spacing: SenseiTokens.gapSm,
+                    spacing: SnapDarkTokens.gapSm,
                     runSpacing: 4,
                     children: [
                       if (protocol.isNotEmpty)

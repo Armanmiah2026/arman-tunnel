@@ -10,12 +10,12 @@ import 'package:provider/provider.dart';
 import '../models/server_config.dart';
 import '../services/config_service.dart';
 import '../services/tunnel_http_client.dart';
-import '../theme/sensei_theme.dart';
+import '../theme/snapdark_theme.dart';
 import '../utils/format.dart';
 import '../utils/user_error.dart';
 import '../widgets/app_toast.dart';
-import '../widgets/ui/sensei_controls.dart';
-import '../widgets/ui/sensei_modal.dart';
+import '../widgets/ui/snapdark_controls.dart';
+import '../widgets/ui/snapdark_modal.dart';
 
 /// Logical grouping of the protocols for the manual form.
 enum _Family { v2ray, ssh, openvpn, udp, wireguard, psiphon }
@@ -267,13 +267,13 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
   /// user retry without importing on a typo, but the real verification is
   /// the decrypt itself (a wrong PIN fails the AES-GCM tag).
   Future<String?> _askLockPin(String text) {
-    return SenseiModal.edit(
+    return SnapDarkModal.edit(
       context,
       title: 'Locked config',
       description: 'This config is locked by its sharer. Enter the PIN they '
           'gave you to open it.',
       fields: const [
-        SenseiModalField(label: 'Lock PIN', hint: 'required'),
+        SnapDarkModalField(label: 'Lock PIN', hint: 'required'),
       ],
       saveLabel: 'Unlock & import',
     ).then((out) => (out == null || out.isEmpty) ? null : out.first.trim());
@@ -896,12 +896,12 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
             children: [
               Padding(
                 padding: const EdgeInsets.fromLTRB(
-                  SenseiTokens.pageInset,
-                  SenseiTokens.gapMd,
-                  SenseiTokens.pageInset,
-                  SenseiTokens.gapSm,
+                  SnapDarkTokens.pageInset,
+                  SnapDarkTokens.gapMd,
+                  SnapDarkTokens.pageInset,
+                  SnapDarkTokens.gapSm,
                 ),
-                child: SenseiSegmented<_Mode>(
+                child: SnapDarkSegmented<_Mode>(
                   values: const [_Mode.import, _Mode.manual],
                   selected: _isImportMode ? _Mode.import : _Mode.manual,
                   onChanged: (m) => setState(() => _isImportMode = m == _Mode.import),
@@ -926,37 +926,37 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
   Widget _buildImportForm() {
     return Center(
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: SenseiTokens.maxContentWidth),
+        constraints: const BoxConstraints(maxWidth: SnapDarkTokens.maxContentWidth),
         child: ListView(
           padding: const EdgeInsets.fromLTRB(
-            SenseiTokens.pageInset,
-            SenseiTokens.gapMd,
-            SenseiTokens.pageInset,
-            SenseiTokens.gapXxl * 2,
+            SnapDarkTokens.pageInset,
+            SnapDarkTokens.gapMd,
+            SnapDarkTokens.pageInset,
+            SnapDarkTokens.gapXxl * 2,
           ),
           children: [
-            const SenseiNotice(
+            const SnapDarkNotice(
               message:
                   'Copy a config anywhere — then tap Import from Clipboard. '
                   'Supports armantunnel:// shares (incl. locked), protocol '
                   'links, and .st / .ovpn files.',
             ),
-            const SizedBox(height: SenseiTokens.gapLg),
+            const SizedBox(height: SnapDarkTokens.gapLg),
             // The primary action: read the SHARE STRING straight from the
             // system clipboard and import it — no manual paste box (the box
             // is gone by design; the clipboard IS the input).
-            SenseiPrimaryButton(
+            SnapDarkPrimaryButton(
               label: 'Import from Clipboard',
               icon: Icons.content_paste_rounded,
               onPressed: _importFromClipboard,
             ),
-            const SizedBox(height: SenseiTokens.gapMd),
+            const SizedBox(height: SnapDarkTokens.gapMd),
             OutlinedButton.icon(
               onPressed: _pickOvpnFile,
               icon: const Icon(Icons.folder_open_rounded, size: 18),
               label: const Text('Pick .st / .ovpn file'),
             ),
-            const SizedBox(height: SenseiTokens.gapXl),
+            const SizedBox(height: SnapDarkTokens.gapXl),
             // Manual entry stays available as the second tab — the paste
             // box was the only redundant path.
             Center(
@@ -1076,21 +1076,21 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
   Widget _buildManualForm() {
     return Center(
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: SenseiTokens.maxContentWidth),
+        constraints: const BoxConstraints(maxWidth: SnapDarkTokens.maxContentWidth),
         child: ListView(
           padding: const EdgeInsets.fromLTRB(
-            SenseiTokens.pageInset,
-            SenseiTokens.gapMd,
-            SenseiTokens.pageInset,
-            SenseiTokens.gapXxl * 2,
+            SnapDarkTokens.pageInset,
+            SnapDarkTokens.gapMd,
+            SnapDarkTokens.pageInset,
+            SnapDarkTokens.gapXxl * 2,
           ),
           children: [
             _officialServerSection(),
             if (!_useOfficialServer) ...[
               _familySelector(),
-              const SizedBox(height: SenseiTokens.gapLg),
+              const SizedBox(height: SnapDarkTokens.gapLg),
             ],
-            SenseiField(
+            SnapDarkField(
               label: 'Configuration Name',
               controller: _nameController,
               hint: 'My fast server',
@@ -1103,8 +1103,8 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
               if (_family == _Family.wireguard) _wireguardSection(),
               if (_family == _Family.psiphon) _psiphonSection(),
             ],
-            const SizedBox(height: SenseiTokens.gapMd),
-            SenseiPrimaryButton(
+            const SizedBox(height: SnapDarkTokens.gapMd),
+            SnapDarkPrimaryButton(
               label: 'Save Configuration',
               icon: Icons.save_alt_rounded,
               onPressed: _save,
@@ -1162,8 +1162,8 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
           }),
         ),
         if (_useOfficialServer) ...[
-          const SizedBox(height: SenseiTokens.gapSm),
-          SenseiDropdown<String>(
+          const SizedBox(height: SnapDarkTokens.gapSm),
+          SnapDarkDropdown<String>(
             label: 'Tweak type',
             value: _officialCapability != null &&
                     types.contains(_officialCapability)
@@ -1219,7 +1219,7 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
               children: [
                 if (desc.isNotEmpty)
                   Padding(
-                    padding: const EdgeInsets.only(bottom: SenseiTokens.gapSm),
+                    padding: const EdgeInsets.only(bottom: SnapDarkTokens.gapSm),
                     child: Text(
                       'Description: $desc',
                       style: TextStyle(
@@ -1228,7 +1228,7 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
                   ),
                 // The Server↔Tweak rule made visible: pick the REAL server
                 // this tweak rides (failover keeps the same family + type).
-                SenseiDropdown<String>(
+                SnapDarkDropdown<String>(
                   label: 'Server to ride',
                   value: anchor.id,
                   items: rides.map((s) => s.id).toList(),
@@ -1254,10 +1254,10 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
               ],
             );
           }),
-          const SizedBox(height: SenseiTokens.gapMd),
+          const SizedBox(height: SnapDarkTokens.gapMd),
           _officialTweakFields(),
         ],
-        const SizedBox(height: SenseiTokens.gapLg),
+        const SizedBox(height: SnapDarkTokens.gapLg),
       ],
     );
   }
@@ -1269,7 +1269,7 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
       caption: 'Only these fields are saved/shared. Official server address, '
           'port and credentials are resolved from the live feed at connect time.',
       children: [
-        SenseiSwitchTile(
+        SnapDarkSwitchTile(
           icon: Icons.lock_outline_rounded,
           title: 'Use SNI',
           subtitle: 'Override the official endpoint SNI / serverName.',
@@ -1277,12 +1277,12 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
           onChanged: (v) => setState(() => _officialUseSni = v),
         ),
         if (_officialUseSni)
-          SenseiField(
+          SnapDarkField(
             label: 'SNI / Bug Host',
             controller: _sniController,
             hint: 'sni.host.com',
           ),
-        SenseiSwitchTile(
+        SnapDarkSwitchTile(
           icon: Icons.code_rounded,
           title: 'Use Payload',
           subtitle: 'Inject a custom HTTP payload before the tunnel handshake.',
@@ -1290,14 +1290,14 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
           onChanged: (v) => setState(() => _officialUsePayload = v),
         ),
         if (_officialUsePayload) ...[
-          SenseiField(
+          SnapDarkField(
             label: 'Payload',
             controller: _payloadController,
             hint: 'GET / HTTP/1.1[crlf]Host: [host][crlf][crlf]',
             maxLines: 5,
           ),
           _payloadPresetBar(),
-          SenseiSwitchTile(
+          SnapDarkSwitchTile(
             icon: Icons.call_split_rounded,
             title: 'Enhanced Payload',
             subtitle: 'Split the payload across packets to dodge inline DPI.',
@@ -1305,7 +1305,7 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
             onChanged: (v) => setState(() => _officialEnhanced = v),
           ),
         ],
-        SenseiSwitchTile(
+        SnapDarkSwitchTile(
           icon: Icons.hub_rounded,
           title: 'Use Proxy / Front Host',
           subtitle: 'Dial a bug/proxy host instead of the raw official endpoint.',
@@ -1318,16 +1318,16 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
             children: [
               Expanded(
                 flex: 3,
-                child: SenseiField(
+                child: SnapDarkField(
                   label: 'Proxy / Front Host',
                   controller: _proxyHostController,
                   hint: kDefaultProxyHost,
                 ),
               ),
-              const SizedBox(width: SenseiTokens.gapMd),
+              const SizedBox(width: SnapDarkTokens.gapMd),
               Expanded(
                 flex: 1,
-                child: SenseiField(
+                child: SnapDarkField(
                   label: 'Port',
                   controller: _proxyPortController,
                   hint: kDefaultProxyPort,
@@ -1372,7 +1372,7 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
         color: t.surfaceAlt,
-        borderRadius: SenseiTokens.brMd,
+        borderRadius: SnapDarkTokens.brMd,
         border: Border.all(color: t.border),
       ),
       child: Wrap(
@@ -1384,12 +1384,12 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
               onTap: () => setState(() => _selectFamily(fam)),
               behavior: HitTestBehavior.opaque,
               child: AnimatedContainer(
-                duration: SenseiTokens.fast,
+                duration: SnapDarkTokens.fast,
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
                   color: _family == fam ? t.accent : Colors.transparent,
-                  borderRadius: SenseiTokens.brSm,
+                  borderRadius: SnapDarkTokens.brSm,
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -1431,7 +1431,7 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
           Icons.flash_on_rounded,
           caption: 'Paste a vmess:// or vless:// link to auto-fill the fields below.',
           children: [
-            SenseiPrimaryButton(
+            SnapDarkPrimaryButton(
               label: 'Import from Clipboard',
               icon: Icons.content_paste_go_rounded,
               onPressed: _prefillFromClipboard,
@@ -1442,7 +1442,7 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
           'Core Details',
           Icons.dns_rounded,
           children: [
-            SenseiDropdown<ProtocolType>(
+            SnapDarkDropdown<ProtocolType>(
               label: 'Protocol',
               value: _protocol,
               items: const [
@@ -1459,16 +1459,16 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
               children: [
                 Expanded(
                   flex: 3,
-                  child: SenseiField(
+                  child: SnapDarkField(
                     label: 'Address',
                     controller: _addressController,
                     hint: 'server.com / 1.2.3.4',
                   ),
                 ),
-                const SizedBox(width: SenseiTokens.gapMd),
+                const SizedBox(width: SnapDarkTokens.gapMd),
                 Expanded(
                   flex: 1,
-                  child: SenseiField(
+                  child: SnapDarkField(
                     label: 'Port',
                     controller: _portController,
                     hint: '443',
@@ -1477,7 +1477,7 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
                 ),
               ],
             ),
-            SenseiField(
+            SnapDarkField(
               label: isTrojan ? 'Password' : 'UUID',
               controller: _uuidController,
               hint: isTrojan ? 'trojan password' : 'xxxxxxxx-xxxx-…',
@@ -1492,7 +1492,7 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
                     ),
             ),
             if (isVmess)
-              SenseiField(
+              SnapDarkField(
                 label: 'AlterID',
                 controller: _alterIdController,
                 hint: '0',
@@ -1504,7 +1504,7 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
           'Transport & Security',
           Icons.swap_horiz_rounded,
           children: [
-            SenseiDropdown<TransportType>(
+            SnapDarkDropdown<TransportType>(
               label: 'Network',
               value: _transport,
               items: TransportType.values,
@@ -1512,7 +1512,7 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
               onChanged: (v) => setState(() => _transport = v),
             ),
             if (isVmess)
-              SenseiDropdown<String>(
+              SnapDarkDropdown<String>(
                 label: 'Security (encryption)',
                 value: _vmessSecurity,
                 items: const ['none', 'auto', 'aes-128-gcm', 'chacha20-poly1305'],
@@ -1520,12 +1520,12 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
                 onChanged: (v) => setState(() => _vmessSecurity = v),
               ),
             if (_transport == TransportType.ws) ...[
-              SenseiField(
+              SnapDarkField(
                 label: 'WebSocket Path',
                 controller: _pathController,
                 hint: '/path',
               ),
-              SenseiField(
+              SnapDarkField(
                 label: 'Host Header',
                 controller: _hostController,
                 hint: 'cdn.host.com',
@@ -1533,24 +1533,24 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
             ],
             if (_transport == TransportType.xhttp ||
                 _transport == TransportType.httpUpgrade) ...[
-              SenseiField(
+              SnapDarkField(
                 label: 'Path',
                 controller: _pathController,
                 hint: '/path',
               ),
-              SenseiField(
+              SnapDarkField(
                 label: 'Host Header',
                 controller: _hostController,
                 hint: 'cdn.host.com',
               ),
             ],
             if (_transport == TransportType.grpc)
-              SenseiField(
+              SnapDarkField(
                 label: 'gRPC Service Name',
                 controller: _serviceNameController,
                 hint: 'GunService',
               ),
-            SenseiDropdown<SecurityType>(
+            SnapDarkDropdown<SecurityType>(
               label: 'Security',
               value: _v2raySecurity,
               items: const [
@@ -1572,14 +1572,14 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
                   }),
             ),
             if (_v2raySecurity != SecurityType.none) ...[
-              SenseiField(
+              SnapDarkField(
                 label: _v2raySecurity == SecurityType.reality
                     ? 'SNI / serverName'
                     : 'SNI (Server Name)',
                 controller: _sniController,
                 hint: 'sni.host.com',
               ),
-              SenseiDropdown<String>(
+              SnapDarkDropdown<String>(
                 label: 'uTLS Fingerprint',
                 value: _fingerprint,
                 items: const [
@@ -1596,13 +1596,13 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
               ),
             ],
             if (_v2raySecurity == SecurityType.reality) ...[
-              SenseiField(
+              SnapDarkField(
                 label: 'REALITY Public Key',
                 controller: _publicKeyController,
                 hint: 'server public key (pbk)',
                 mono: true,
               ),
-              SenseiField(
+              SnapDarkField(
                 label: 'REALITY Short ID',
                 controller: _shortIdController,
                 hint: 'sid (optional)',
@@ -1610,7 +1610,7 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
               ),
             ],
             if (_protocol == ProtocolType.vless)
-              SenseiField(
+              SnapDarkField(
                 label: 'Flow (XTLS)',
                 controller: _flowController,
                 hint: 'xtls-rprx-vision — or leave empty',
@@ -1623,7 +1623,7 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
           caption: 'Front the V2Ray stream with an HTTP payload or bug-host proxy. '
               'TLS & SNI are still handled above.',
           children: [
-            SenseiSwitchTile(
+            SnapDarkSwitchTile(
               icon: Icons.http_rounded,
               title: 'Use Custom Payload',
               subtitle: 'Send an HTTP request before the V2Ray handshake.',
@@ -1631,7 +1631,7 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
               onChanged: (v) => setState(() => _v2rayUsePayload = v),
             ),
             if (_v2rayUsePayload) ...[
-              SenseiField(
+              SnapDarkField(
                 label: 'Custom Payload',
                 controller: _payloadController,
                 hint:
@@ -1640,7 +1640,7 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
                 mono: true,
               ),
               _payloadPresetBar(),
-              SenseiSwitchTile(
+              SnapDarkSwitchTile(
                 icon: Icons.call_split_rounded,
                 title: 'Enhanced Payload',
                 subtitle: 'Split the payload across packets to dodge inline DPI.',
@@ -1648,7 +1648,7 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
                 onChanged: (v) => setState(() => _v2rayEnhanced = v),
               ),
             ],
-            SenseiSwitchTile(
+            SnapDarkSwitchTile(
               icon: Icons.hub_rounded,
               title: 'Use Proxy',
               subtitle: 'Route through an HTTP proxy (bug host).',
@@ -1661,16 +1661,16 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
                 children: [
                   Expanded(
                     flex: 3,
-                    child: SenseiField(
+                    child: SnapDarkField(
                       label: 'Proxy Host',
                       controller: _proxyHostController,
                       hint: kDefaultProxyHost,
                     ),
                   ),
-                  const SizedBox(width: SenseiTokens.gapMd),
+                  const SizedBox(width: SnapDarkTokens.gapMd),
                   Expanded(
                     flex: 1,
-                    child: SenseiField(
+                    child: SnapDarkField(
                       label: 'Port',
                       controller: _proxyPortController,
                       hint: kDefaultProxyPort,
@@ -1701,16 +1701,16 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
               children: [
                 Expanded(
                   flex: 3,
-                  child: SenseiField(
+                  child: SnapDarkField(
                     label: 'Host / IP',
                     controller: _addressController,
                     hint: 'ssh.server.com',
                   ),
                 ),
-                const SizedBox(width: SenseiTokens.gapMd),
+                const SizedBox(width: SnapDarkTokens.gapMd),
                 Expanded(
                   flex: 1,
-                  child: SenseiField(
+                  child: SnapDarkField(
                     label: 'Port',
                     controller: _portController,
                     hint: '22',
@@ -1719,12 +1719,12 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
                 ),
               ],
             ),
-            SenseiField(
+            SnapDarkField(
               label: 'Username',
               controller: _sshUserController,
               hint: 'username',
             ),
-            SenseiField(
+            SnapDarkField(
               label: 'Password',
               controller: _sshPassController,
               hint: '••••••••',
@@ -1743,7 +1743,7 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
           'DPI Bypass',
           Icons.shield_moon_rounded,
           children: [
-            SenseiSwitchTile(
+            SnapDarkSwitchTile(
               icon: Icons.enhanced_encryption_rounded,
               title: 'Use SSL / TLS',
               subtitle: 'Wrap the SSH stream in a TLS tunnel.',
@@ -1751,12 +1751,12 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
               onChanged: (v) => setState(() => _sshUseSsl = v),
             ),
             if (_sshUseSsl)
-              SenseiField(
+              SnapDarkField(
                 label: 'SNI (Bug Host)',
                 controller: _sniController,
                 hint: 'free.bug.host.com',
               ),
-            SenseiSwitchTile(
+            SnapDarkSwitchTile(
               icon: Icons.http_rounded,
               title: 'Use Custom Payload',
               subtitle: 'Inject a custom HTTP request before connecting.',
@@ -1764,7 +1764,7 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
               onChanged: (v) => setState(() => _sshUsePayload = v),
             ),
             if (_sshUsePayload) ...[
-              SenseiField(
+              SnapDarkField(
                 label: 'Custom Payload',
                 controller: _payloadController,
                 hint:
@@ -1773,7 +1773,7 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
                 mono: true,
               ),
               _payloadPresetBar(),
-              SenseiSwitchTile(
+              SnapDarkSwitchTile(
                 icon: Icons.call_split_rounded,
                 title: 'Enhanced Payload',
                 subtitle: 'Split the payload across packets to dodge inline DPI.',
@@ -1781,7 +1781,7 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
                 onChanged: (v) => setState(() => _sshEnhanced = v),
               ),
             ],
-            SenseiSwitchTile(
+            SnapDarkSwitchTile(
               icon: Icons.hub_rounded,
               title: 'Use Proxy',
               subtitle: 'Route through an HTTP proxy (bug host).',
@@ -1794,16 +1794,16 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
                 children: [
                   Expanded(
                     flex: 3,
-                    child: SenseiField(
+                    child: SnapDarkField(
                       label: 'Proxy Host',
                       controller: _proxyHostController,
                       hint: kDefaultProxyHost,
                     ),
                   ),
-                  const SizedBox(width: SenseiTokens.gapMd),
+                  const SizedBox(width: SnapDarkTokens.gapMd),
                   Expanded(
                     flex: 1,
-                    child: SenseiField(
+                    child: SnapDarkField(
                       label: 'Port',
                       controller: _proxyPortController,
                       hint: kDefaultProxyPort,
@@ -1818,7 +1818,7 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
           'Enhance',
           Icons.tune_rounded,
           children: [
-            SenseiSwitchTile(
+            SnapDarkSwitchTile(
               icon: Icons.compress_rounded,
               title: 'SSH Compression',
               subtitle: 'zlib compression — helps on slow links.',
@@ -1831,7 +1831,7 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
           'SlowDNS (DNSTT)',
           Icons.dns_rounded,
           children: [
-            SenseiSwitchTile(
+            SnapDarkSwitchTile(
               icon: Icons.water_rounded,
               title: 'Tunnel over DNS',
               subtitle: 'Carry SSH inside DNS queries.',
@@ -1839,18 +1839,18 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
               onChanged: (v) => setState(() => _sshUseDnstt = v),
             ),
             if (_sshUseDnstt) ...[
-              SenseiField(
+              SnapDarkField(
                 label: 'Nameserver',
                 controller: _dnsttServerController,
                 hint: 'ns.example.com',
               ),
-              SenseiField(
+              SnapDarkField(
                 label: 'Public Key',
                 controller: _dnsttKeyController,
                 hint: 'hex public key',
                 mono: true,
               ),
-              SenseiField(
+              SnapDarkField(
                 label: 'DNS Resolver (host:port)',
                 controller: _dnsttResolverController,
                 hint: '1.1.1.1:53',
@@ -1874,14 +1874,14 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
           'OpenVPN Profile',
           Icons.vpn_lock_rounded,
           children: [
-            SenseiCard(
+            SnapDarkCard(
               onTap: _pickOvpnFile,
-              radius: SenseiTokens.radiusMd,
+              radius: SnapDarkTokens.radiusMd,
               child: Column(
                 children: [
                   Icon(hasFile ? Icons.description_rounded : Icons.upload_file_rounded,
                       color: t.accent, size: 30),
-                  const SizedBox(height: SenseiTokens.gapSm),
+                  const SizedBox(height: SnapDarkTokens.gapSm),
                   Text(
                     hasFile
                         ? (_ovpnFileName.isNotEmpty ? _ovpnFileName : 'Profile loaded')
@@ -1898,7 +1898,7 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
                 ],
               ),
             ),
-            SenseiField(
+            SnapDarkField(
               label: '.ovpn Contents',
               controller: _ovpnController,
               hint: 'client\nremote vpn.server.com 1194 udp\n…',
@@ -1911,7 +1911,7 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
           'Authentication',
           Icons.password_rounded,
           children: [
-            SenseiSwitchTile(
+            SnapDarkSwitchTile(
               icon: Icons.key_rounded,
               title: 'Profile requires username / password',
               subtitle: 'Enable if the .ovpn has a bare auth-user-pass line.',
@@ -1919,12 +1919,12 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
               onChanged: (v) => setState(() => _ovpnRequiresAuth = v),
             ),
             if (_ovpnRequiresAuth) ...[
-              SenseiField(
+              SnapDarkField(
                 label: 'Username',
                 controller: _sshUserController,
                 hint: 'username',
               ),
-              SenseiField(
+              SnapDarkField(
                 label: 'Password',
                 controller: _sshPassController,
                 hint: '••••••••',
@@ -1949,7 +1949,7 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
               : 'Front the OpenVPN connection with SNI/TLS, an HTTP payload, or a '
                   'bug-host proxy. Enabling any of these forces proto TCP.',
           children: [
-            SenseiSwitchTile(
+            SnapDarkSwitchTile(
               icon: Icons.enhanced_encryption_rounded,
               title: 'Use SSL / SNI',
               subtitle: 'Wrap the OpenVPN stream in TLS with a spoofed SNI.',
@@ -1958,12 +1958,12 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
               enabled: !_ovpnProfileIsUdp,
             ),
             if (_ovpnUseSsl)
-              SenseiField(
+              SnapDarkField(
                 label: 'SNI (Bug Host)',
                 controller: _sniController,
                 hint: 'free.bug.host.com',
               ),
-            SenseiSwitchTile(
+            SnapDarkSwitchTile(
               icon: Icons.http_rounded,
               title: 'Use Custom Payload',
               subtitle: 'Send an HTTP request before the OpenVPN handshake.',
@@ -1972,7 +1972,7 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
               enabled: !_ovpnProfileIsUdp,
             ),
             if (_ovpnUsePayload) ...[
-              SenseiField(
+              SnapDarkField(
                 label: 'Custom Payload',
                 controller: _payloadController,
                 hint:
@@ -1981,7 +1981,7 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
                 mono: true,
               ),
               _payloadPresetBar(),
-              SenseiSwitchTile(
+              SnapDarkSwitchTile(
                 icon: Icons.call_split_rounded,
                 title: 'Enhanced Payload',
                 subtitle: 'Split the payload across packets to dodge inline DPI.',
@@ -1989,7 +1989,7 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
                 onChanged: (v) => setState(() => _ovpnEnhanced = v),
               ),
             ],
-            SenseiSwitchTile(
+            SnapDarkSwitchTile(
               icon: Icons.hub_rounded,
               title: 'Use Proxy',
               subtitle: 'Route through an HTTP proxy (bug host).',
@@ -2003,16 +2003,16 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
                 children: [
                   Expanded(
                     flex: 3,
-                    child: SenseiField(
+                    child: SnapDarkField(
                       label: 'Proxy Host',
                       controller: _proxyHostController,
                       hint: kDefaultProxyHost,
                     ),
                   ),
-                  const SizedBox(width: SenseiTokens.gapMd),
+                  const SizedBox(width: SnapDarkTokens.gapMd),
                   Expanded(
                     flex: 1,
-                    child: SenseiField(
+                    child: SnapDarkField(
                       label: 'Port',
                       controller: _proxyPortController,
                       hint: kDefaultProxyPort,
@@ -2038,7 +2038,7 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
           Icons.flash_on_rounded,
           caption: 'Paste a hy2:// share link to auto-fill the fields below.',
           children: [
-            SenseiPrimaryButton(
+            SnapDarkPrimaryButton(
               label: 'Import hy2:// from Clipboard',
               icon: Icons.content_paste_go_rounded,
               onPressed: _prefillFromClipboard,
@@ -2056,16 +2056,16 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
               children: [
                 Expanded(
                   flex: 3,
-                  child: SenseiField(
+                  child: SnapDarkField(
                     label: 'Address',
                     controller: _addressController,
                     hint: 'server.com / 1.2.3.4',
                   ),
                 ),
-                const SizedBox(width: SenseiTokens.gapMd),
+                const SizedBox(width: SnapDarkTokens.gapMd),
                 Expanded(
                   flex: 1,
-                  child: SenseiField(
+                  child: SnapDarkField(
                     label: 'Port',
                     controller: _portController,
                     hint: '443',
@@ -2074,13 +2074,13 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
                 ),
               ],
             ),
-            SenseiField(
+            SnapDarkField(
               label: 'Auth Token',
               controller: _hyperAuthController,
               hint: 'server password — empty if the server has none',
               mono: true,
             ),
-            SenseiField(
+            SnapDarkField(
               label: 'SNI (optional)',
               controller: _sniController,
               hint: 'sni.host.com — empty = accept any certificate',
@@ -2106,14 +2106,14 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
           caption: 'Paste the [Interface] + [Peer] config your provider gave '
               'you, or pick a .conf / .wg file. WireGuard rides raw UDP.',
           children: [
-            SenseiCard(
+            SnapDarkCard(
               onTap: _pickWgFile,
-              radius: SenseiTokens.radiusMd,
+              radius: SnapDarkTokens.radiusMd,
               child: Column(
                 children: [
                   Icon(hasConf ? Icons.description_rounded : Icons.upload_file_rounded,
                       color: t.accent, size: 30),
-                  const SizedBox(height: SenseiTokens.gapSm),
+                  const SizedBox(height: SnapDarkTokens.gapSm),
                   Text(
                     hasConf
                         ? (_wgFileName.isNotEmpty ? _wgFileName : 'Config loaded')
@@ -2130,7 +2130,7 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
                 ],
               ),
             ),
-            SenseiField(
+            SnapDarkField(
               label: 'Config Contents',
               controller: _wgController,
               hint: '[Interface]\nPrivateKey = …\n\n[Peer]\nPublicKey = …\n'
@@ -2140,7 +2140,7 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
             ),
             if (ep != null)
               Padding(
-                padding: const EdgeInsets.only(top: SenseiTokens.gapSm),
+                padding: const EdgeInsets.only(top: SnapDarkTokens.gapSm),
                 child: Text(
                   'Endpoint: ${ep.group(1)}:${ep.group(2)} · UDP',
                   style: TextStyle(
@@ -2165,14 +2165,14 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
           caption: 'Public circumvention network — no server address or '
               'credentials needed. Traffic exits in the region you pick.',
           children: [
-            SenseiDropdown<String>(
+            SnapDarkDropdown<String>(
               label: 'Exit Region',
               value: _psiphonRegion,
               items: _psiphonRegionNames.keys.toList(),
               itemLabel: (r) => '$r — ${_psiphonRegionNames[r]}',
               onChanged: (v) => setState(() => _psiphonRegion = v),
             ),
-            const SenseiNotice(
+            const SnapDarkNotice(
               message:
                   'Psiphon is best-effort: it bridges through the public psiphon '
                   'fronts, so speeds vary. Use VLESS/SSH for a dedicated relay.',
@@ -2195,13 +2195,13 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
     required List<Widget> children,
   }) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: SenseiTokens.gapLg),
-      child: SenseiSection(
+      padding: const EdgeInsets.only(bottom: SnapDarkTokens.gapLg),
+      child: SnapDarkSection(
         title: title,
         caption: caption,
         icon: icon,
         divided: false,
-        padding: const EdgeInsets.all(SenseiTokens.gap),
+        padding: const EdgeInsets.all(SnapDarkTokens.gap),
         children: children,
       ),
     );
@@ -2235,25 +2235,25 @@ class _AddConfigScreenState extends State<AddConfigScreen> {
   Widget _payloadPresetBar() {
     final t = context.tokens;
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: SenseiTokens.gapSm),
+      padding: const EdgeInsets.symmetric(vertical: SnapDarkTokens.gapSm),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Templates', style: t.overline),
-          const SizedBox(height: SenseiTokens.gapSm),
+          const SizedBox(height: SnapDarkTokens.gapSm),
           Wrap(
-            spacing: SenseiTokens.gapSm,
-            runSpacing: SenseiTokens.gapSm,
+            spacing: SnapDarkTokens.gapSm,
+            runSpacing: SnapDarkTokens.gapSm,
             children: [
               for (final (label, template) in _payloadPresets)
                 GestureDetector(
                   onTap: () => setState(() => _payloadController.text = template),
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: SenseiTokens.gapMd, vertical: 7),
+                        horizontal: SnapDarkTokens.gapMd, vertical: 7),
                     decoration: BoxDecoration(
                       color: t.surfaceAltFill,
-                      borderRadius: SenseiTokens.brPill,
+                      borderRadius: SnapDarkTokens.brPill,
                       border: Border.all(color: t.border),
                     ),
                     child: Text(label,

@@ -3,8 +3,8 @@ import 'package:provider/provider.dart';
 
 import '../services/settings_provider.dart';
 import '../services/vpn_service.dart';
-import '../theme/sensei_theme.dart';
-import '../widgets/ui/sensei_controls.dart';
+import '../theme/snapdark_theme.dart';
+import '../widgets/ui/snapdark_controls.dart';
 
 /// Per-app split tunneling.
 ///
@@ -89,7 +89,7 @@ class _SplitTunnelScreenState extends State<SplitTunnelScreen> {
               onPressed: () =>
                   context.read<SettingsProvider>().clearSplitApps(),
             ),
-          const SizedBox(width: SenseiTokens.gapXs),
+          const SizedBox(width: SnapDarkTokens.gapXs),
         ],
       ),
       body: DecoratedBox(
@@ -105,18 +105,18 @@ class _SplitTunnelScreenState extends State<SplitTunnelScreen> {
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(
-                maxWidth: SenseiTokens.maxContentWidth,
+                maxWidth: SnapDarkTokens.maxContentWidth,
               ),
               child: Column(
                 children: [
                   Padding(
                     padding: const EdgeInsets.fromLTRB(
-                      SenseiTokens.pageInset,
-                      SenseiTokens.gapSm,
-                      SenseiTokens.pageInset,
-                      SenseiTokens.gapMd,
+                      SnapDarkTokens.pageInset,
+                      SnapDarkTokens.gapSm,
+                      SnapDarkTokens.pageInset,
+                      SnapDarkTokens.gapMd,
                     ),
-                    child: SenseiSegmented<String>(
+                    child: SnapDarkSegmented<String>(
                       values: const ['off', 'exclude', 'include'],
                       selected: s.splitMode,
                       onChanged: (m) =>
@@ -135,12 +135,12 @@ class _SplitTunnelScreenState extends State<SplitTunnelScreen> {
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: SenseiTokens.pageInset,
+                      horizontal: SnapDarkTokens.pageInset,
                     ),
-                    child: SenseiNotice(
+                    child: SnapDarkNotice(
                       kind: enabled && selected.isEmpty
-                          ? SenseiNoticeKind.warning
-                          : SenseiNoticeKind.info,
+                          ? SnapDarkNoticeKind.warning
+                          : SnapDarkNoticeKind.info,
                       message: switch (s.splitMode) {
                         'include' => selected.isEmpty
                             ? 'Pick at least one app — the tunnel will not start '
@@ -161,7 +161,7 @@ class _SplitTunnelScreenState extends State<SplitTunnelScreen> {
                   ),
                   if (!enabled)
                     const Expanded(
-                      child: SenseiEmptyState(
+                      child: SnapDarkEmptyState(
                         icon: Icons.all_inclusive_rounded,
                         title: 'Split tunneling is off',
                         message: 'All apps route through the VPN.',
@@ -170,12 +170,12 @@ class _SplitTunnelScreenState extends State<SplitTunnelScreen> {
                   else ...[
                     Padding(
                       padding: const EdgeInsets.fromLTRB(
-                        SenseiTokens.pageInset,
-                        SenseiTokens.gapMd,
-                        SenseiTokens.pageInset,
-                        SenseiTokens.gapSm,
+                        SnapDarkTokens.pageInset,
+                        SnapDarkTokens.gapMd,
+                        SnapDarkTokens.pageInset,
+                        SnapDarkTokens.gapSm,
                       ),
-                      child: SenseiSearchField(
+                      child: SnapDarkSearchField(
                         hint: 'Search apps…',
                         onChanged: (v) =>
                             setState(() => _query = v.trim().toLowerCase()),
@@ -187,16 +187,16 @@ class _SplitTunnelScreenState extends State<SplitTunnelScreen> {
                               child: CircularProgressIndicator(color: t.accent),
                             )
                           : list.isEmpty
-                              ? const SenseiEmptyState(
+                              ? const SnapDarkEmptyState(
                                   icon: Icons.search_off_rounded,
                                   title: 'No apps match',
                                 )
                               : ListView.builder(
                                   padding: const EdgeInsets.fromLTRB(
-                                    SenseiTokens.pageInset,
+                                    SnapDarkTokens.pageInset,
                                     0,
-                                    SenseiTokens.pageInset,
-                                    SenseiTokens.gapXl,
+                                    SnapDarkTokens.pageInset,
+                                    SnapDarkTokens.gapXl,
                                   ),
                                   itemCount: list.length,
                                   itemBuilder: (_, i) {
@@ -244,14 +244,14 @@ class _AppRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.tokens;
     return Padding(
-      padding: const EdgeInsets.only(bottom: SenseiTokens.gapSm),
-      child: SenseiCard(
+      padding: const EdgeInsets.only(bottom: SnapDarkTokens.gapSm),
+      child: SnapDarkCard(
         onTap: () => onChanged(!checked),
         active: checked,
-        radius: SenseiTokens.radiusMd,
+        radius: SnapDarkTokens.radiusMd,
         padding: const EdgeInsets.symmetric(
-          horizontal: SenseiTokens.gapMd,
-          vertical: SenseiTokens.gapMd - 2,
+          horizontal: SnapDarkTokens.gapMd,
+          vertical: SnapDarkTokens.gapMd - 2,
         ),
         child: Row(
           children: [
@@ -261,7 +261,7 @@ class _AppRow extends StatelessWidget {
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 color: t.surfaceAltFill,
-                borderRadius: SenseiTokens.brSm,
+                borderRadius: SnapDarkTokens.brSm,
               ),
               child: Icon(
                 system ? Icons.android_rounded : Icons.apps_rounded,
@@ -269,7 +269,7 @@ class _AppRow extends StatelessWidget {
                 size: 18,
               ),
             ),
-            const SizedBox(width: SenseiTokens.gapMd),
+            const SizedBox(width: SnapDarkTokens.gapMd),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

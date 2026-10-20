@@ -3,7 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
-import '../theme/sensei_theme.dart';
+import '../theme/snapdark_theme.dart';
 
 /// Terminal-style progress overlay shown while a background task runs
 /// (fetching and decrypting the config feed).
@@ -104,10 +104,10 @@ class _HackerDialogState extends State<_HackerDialog>
     return Center(
       child: Container(
         width: 320,
-        padding: const EdgeInsets.all(SenseiTokens.gap),
+        padding: const EdgeInsets.all(SnapDarkTokens.gap),
         decoration: BoxDecoration(
           color: t.isDark ? const Color(0xFF0A0714) : t.surface,
-          borderRadius: SenseiTokens.brMd,
+          borderRadius: SnapDarkTokens.brMd,
           border: Border.all(color: t.accent.withValues(alpha: 0.55)),
           boxShadow: [
             BoxShadow(color: t.accent.withValues(alpha: 0.22), blurRadius: 26),
@@ -120,7 +120,7 @@ class _HackerDialogState extends State<_HackerDialog>
             Row(
               children: [
                 Icon(Icons.terminal_rounded, color: t.accent, size: 17),
-                const SizedBox(width: SenseiTokens.gapSm),
+                const SizedBox(width: SnapDarkTokens.gapSm),
                 Text(
                   widget.title,
                   style: t.mono(
@@ -132,7 +132,7 @@ class _HackerDialogState extends State<_HackerDialog>
                 ),
               ],
             ),
-            const SizedBox(height: SenseiTokens.gapMd),
+            const SizedBox(height: SnapDarkTokens.gapMd),
             SizedBox(
               height: 148,
               width: double.infinity,
@@ -162,7 +162,7 @@ class _HackerDialogState extends State<_HackerDialog>
                     .toList(),
               ),
             ),
-            const SizedBox(height: SenseiTokens.gapMd),
+            const SizedBox(height: SnapDarkTokens.gapMd),
             ClipRRect(
               borderRadius: BorderRadius.circular(4),
               child: AnimatedBuilder(

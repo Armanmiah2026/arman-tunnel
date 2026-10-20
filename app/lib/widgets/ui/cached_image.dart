@@ -9,14 +9,14 @@ import 'package:provider/provider.dart';
 
 import '../../services/config_service.dart';
 import '../../services/tunnel_http_client.dart';
-import '../../theme/sensei_theme.dart';
+import '../../theme/snapdark_theme.dart';
 
 /// The load state of ONE logo image (keyed by URL), shared by every surface
 /// that renders it — the configs list, the home dashboard, anywhere.
 ///
 /// Sharing is the point: the instant a download finishes, every widget reads
 /// this same entry, so no screen can keep spinning while another already
-/// shows the image. State lives process-wide in [SenseiLogoCache], never in a
+/// shows the image. State lives process-wide in [SnapDarkLogoCache], never in a
 /// per-widget field that a disposed/recycled element could strand.
 class LogoEntry {
   /// The cached file to render when the image is ready.
@@ -34,15 +34,15 @@ class LogoEntry {
 /// Process-wide logo cache + reactive state bus.
 ///
 /// · Cache: one download per URL (shared in-flight future), written to
-///   `<docs>/sensei_img_cache/<url-hash>.png` the moment it arrives.
+///   `<docs>/snapdark_img_cache/<url-hash>.png` the moment it arrives.
 /// · State: one [LogoEntry] per URL. Every change fires [notifyListeners()]
 ///   so all listening widgets rebuild immediately — no app restart needed.
 /// · Failures: recorded as a `failed` entry so fallback glyphs render once,
 ///   instead of the loader spinning forever.
-class SenseiLogoCache extends ChangeNotifier {
-  SenseiLogoCache._();
+class SnapDarkLogoCache extends ChangeNotifier {
+  SnapDarkLogoCache._();
 
-  static final SenseiLogoCache instance = SenseiLogoCache._();
+  static final SnapDarkLogoCache instance = SnapDarkLogoCache._();
 
   final Map<String, LogoEntry> _entries = {};
   final Map<String, Future<LogoEntry>> _inFlight = {};
@@ -70,8 +70,8 @@ class SenseiLogoCache extends ChangeNotifier {
 
     // 1. Local file already on disk (previous session or a parallel load).
     try {
-      final dir = await SenseiCachedImage.cacheDirPath();
-      final f = File('$dir/${SenseiCachedImage.hash(url)}.png');
+      final dir = await SnapDarkCachedImage.cacheDirPath();
+      final f = File('$dir/${SnapDarkCachedImage.hash(url)}.png');
       if (await f.exists()) {
         entry = LogoEntry(file: f);
         _entries[url] = entry;
@@ -81,7 +81,7 @@ class SenseiLogoCache extends ChangeNotifier {
     } catch (_) {/* fall through to a network load */}
 
     // 2. Download + store.
-    final file = await SenseiCachedImage.fetchAndCache(url, cachePx);
+    final file = await SnapDarkCachedImage.fetchAndCache(url, cachePx);
     entry = file != null
         ? LogoEntry(file: file)
         : const LogoEntry(failed: true);
@@ -98,9 +98,9 @@ class SenseiLogoCache extends ChangeNotifier {
     var dir = '';
     var backedUp = false;
     try {
-      dir = await SenseiCachedImage.cacheDirPath();
-      final f = File('$dir/${SenseiCachedImage.hash(url)}.png');
-      final backup = File('$dir/${SenseiCachedImage.hash(url)}.bak');
+      dir = await SnapDarkCachedImage.cacheDirPath();
+      final f = File('$dir/${SnapDarkCachedImage.hash(url)}.png');
+      final backup = File('$dir/${SnapDarkCachedImage.hash(url)}.bak');
       if (await f.exists()) {
         try {
           if (await backup.exists()) await backup.delete();
@@ -116,8 +116,8 @@ class SenseiLogoCache extends ChangeNotifier {
     final entry = await _resolve(url, cachePx);
 
     if (backedUp) {
-      final f = File('$dir/${SenseiCachedImage.hash(url)}.png');
-      final backup = File('$dir/${SenseiCachedImage.hash(url)}.bak');
+      final f = File('$dir/${SnapDarkCachedImage.hash(url)}.png');
+      final backup = File('$dir/${SnapDarkCachedImage.hash(url)}.bak');
       if (entry.failed) {
         try {
           await backup.rename(f.path);
@@ -134,14 +134,14 @@ class SenseiLogoCache extends ChangeNotifier {
 }
 
 /// Network image with a PERMANENT low-quality local cache and a reactive,
-/// shared load state (see [SenseiLogoCache]).
+/// shared load state (see [SnapDarkLogoCache]).
 ///
 /// Widgets never own their `loading/image/error` flags — they subscribe to
 /// the URL's entry, so the moment the download lands (or a cached file is
 /// found) every surface renders the image on the next frame. No more
 /// "image visible on Home but the Configs list still spins" divergence, and
 /// no app restart needed to pick up a freshly-loaded logo.
-class SenseiCachedImage extends StatefulWidget {
+class SnapDarkCachedImage extends StatefulWidget {
   final String url;
 
   /// Logical render size (both edges — avatars are square).
@@ -150,7 +150,7 @@ class SenseiCachedImage extends StatefulWidget {
   /// Error fallback builder (receives the box it must fill).
   final WidgetBuilder errorBuilder;
 
-  const SenseiCachedImage({
+  const SnapDarkCachedImage({
     super.key,
     required this.url,
     required this.size,
@@ -158,10 +158,10 @@ class SenseiCachedImage extends StatefulWidget {
   });
 
   @override
-  State<SenseiCachedImage> createState() => _SenseiCachedImageState();
+  State<SnapDarkCachedImage> createState() => _SnapDarkCachedImageState();
 
   static Future<String> cacheDirPath() async =>
-      '${(await getApplicationDocumentsDirectory()).path}/sensei_img_cache';
+      '${(await getApplicationDocumentsDirectory()).path}/snapdark_img_cache';
 
   /// Stable FNV-1a 64-bit hash of the URL — the cache file name.
   static String hash(String url) {
@@ -200,7 +200,7 @@ class SenseiCachedImage extends StatefulWidget {
   }
 }
 
-class _SenseiCachedImageState extends State<SenseiCachedImage> {
+class _SnapDarkCachedImageState extends State<SnapDarkCachedImage> {
   int _seenRefresh = 0;
 
   int get _cachePx => (widget.size * 2).round();
@@ -209,23 +209,23 @@ class _SenseiCachedImageState extends State<SenseiCachedImage> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _seenRefresh = context.read<ConfigService>().logoCacheEpoch;
-    SenseiLogoCache.instance.watch(widget.url, _cachePx);
+    SnapDarkLogoCache.instance.watch(widget.url, _cachePx);
   }
 
   @override
-  void didUpdateWidget(SenseiCachedImage old) {
+  void didUpdateWidget(SnapDarkCachedImage old) {
     super.didUpdateWidget(old);
     final epoch = context.read<ConfigService>().logoCacheEpoch;
     final epochChanged = epoch != _seenRefresh;
     _seenRefresh = epoch;
     if (old.url != widget.url) {
-      SenseiLogoCache.instance.watch(widget.url, _cachePx);
+      SnapDarkLogoCache.instance.watch(widget.url, _cachePx);
     } else if (epochChanged) {
       // Manual config refresh: the cache is keyed ONLY by URL, so a logo the
       // admin swapped while keeping the same imgbb URL would otherwise stay
       // frozen at the first download. Re-download the CURRENT url once per
       // successful manual refresh; failures keep the old image.
-      unawaited(SenseiLogoCache.instance.revalidate(widget.url, _cachePx));
+      unawaited(SnapDarkLogoCache.instance.revalidate(widget.url, _cachePx));
     }
   }
 
@@ -235,9 +235,9 @@ class _SenseiCachedImageState extends State<SenseiCachedImage> {
     final size = widget.size;
 
     return ListenableBuilder(
-      listenable: SenseiLogoCache.instance,
+      listenable: SnapDarkLogoCache.instance,
       builder: (context, _) {
-        final entry = SenseiLogoCache.instance.entryFor(widget.url);
+        final entry = SnapDarkLogoCache.instance.entryFor(widget.url);
 
         // Loaded → render the cached file (instant, offline-safe).
         if (entry.file != null) {
@@ -264,7 +264,7 @@ class _SenseiCachedImageState extends State<SenseiCachedImage> {
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: t.accentWash,
-            borderRadius: SenseiTokens.brSm,
+            borderRadius: SnapDarkTokens.brSm,
           ),
           child: SizedBox(
             width: size * 0.33,

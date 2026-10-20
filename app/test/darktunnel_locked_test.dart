@@ -2,9 +2,9 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sensei_tunnel/models/server_config.dart';
-import 'package:sensei_tunnel/services/config_service.dart';
-import 'package:sensei_tunnel/utils/darktunnel_codec.dart';
+import 'package:snapdark_tunnel/models/server_config.dart';
+import 'package:snapdark_tunnel/services/config_service.dart';
+import 'package:snapdark_tunnel/utils/darktunnel_codec.dart';
 
 Uint8List _h(String s) => Uint8List.fromList([
       for (var i = 0; i < s.length; i += 2)

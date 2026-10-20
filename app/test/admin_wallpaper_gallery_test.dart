@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:sensei_tunnel/services/config_service.dart';
+import 'package:snapdark_tunnel/services/config_service.dart';
 
 void main() {
   group('parseWallpaperEntries', () {

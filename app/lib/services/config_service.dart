@@ -104,13 +104,13 @@ class AppCapabilityType {
 }
 
 class ConfigService extends ChangeNotifier {
-  static const String _storageKey = 'sensei_tunnel_servers';
-  static const String _selectedStorageKey = 'sensei_tunnel_selected_server';
-  static const String _subUrlKey = 'sensei_subscription_url';
-  static const String _categoriesKey = 'sensei_categories';
-  static const String _adminWallpapersKey = 'sensei_admin_wallpapers';
-  static const String _typesKey = 'sensei_capability_types';
-  static const String _typeMetaKey = 'sensei_capability_type_meta';
+  static const String _storageKey = 'snapdark_tunnel_servers';
+  static const String _selectedStorageKey = 'snapdark_tunnel_selected_server';
+  static const String _subUrlKey = 'snapdark_subscription_url';
+  static const String _categoriesKey = 'snapdark_categories';
+  static const String _adminWallpapersKey = 'snapdark_admin_wallpapers';
+  static const String _typesKey = 'snapdark_capability_types';
+  static const String _typeMetaKey = 'snapdark_capability_type_meta';
   static final String _githubConfigUrl = Obf.githubConfigUrl;
   static final String _githubSettingsUrl = Obf.githubSettingsUrl;
   static final String _githubConfigKey = Obf.githubConfigKey;
@@ -240,7 +240,7 @@ class ConfigService extends ChangeNotifier {
   /// Bumped after every SUCCESSFUL manual config refresh. The logo cache is
   /// keyed only by URL, so a logo the admin replaces without changing its
   /// imgbb URL would otherwise stay frozen at the first download forever —
-  /// restarting the app still shows the old image. `SenseiCachedImage`
+  /// restarting the app still shows the old image. `SnapDarkCachedImage`
   /// watches this and re-downloads its current URL once per manual refresh.
   int _logoCacheEpoch = 0;
   int get logoCacheEpoch => _logoCacheEpoch;
@@ -287,7 +287,7 @@ class ConfigService extends ChangeNotifier {
       // whole gallery as the "Admin" source; one only becomes the background
       // when the user has not picked one of their own.
       final dir = await _adminWallpaperDir;
-      final file = File('$dir/sensei_wallpaper_admin_$index.png');
+      final file = File('$dir/snapdark_wallpaper_admin_$index.png');
       await file.writeAsBytes(res.bodyBytes, flush: true);
     } catch (_) {
       // Network/DNS failure — keep whatever wallpapers are already applied.
@@ -301,7 +301,7 @@ class ConfigService extends ChangeNotifier {
     final dir = await _adminWallpaperDir;
     final out = <AdminWallpaper>[];
     for (var i = 0; i < _adminWallpapersRaw.length; i++) {
-      final f = File('$dir/sensei_wallpaper_admin_$i.png');
+      final f = File('$dir/snapdark_wallpaper_admin_$i.png');
       if (await f.exists()) {
         out.add(AdminWallpaper(
           path: f.path,
@@ -450,7 +450,7 @@ class ConfigService extends ChangeNotifier {
           await _refreshStaleCdn(-1);
         }
         // A manual refresh that actually fetched something is the signal that
-        // the panel re-published — bump the epoch so visible SenseiCachedImages
+        // the panel re-published — bump the epoch so visible SnapDarkCachedImages
         // re-download even when a logo URL did not change.
         if (manual && !lastRefreshFailed) _logoCacheEpoch++;
       } else {
@@ -776,7 +776,7 @@ class ConfigService extends ChangeNotifier {
     if (entries.isEmpty) return;
     final dir = await _adminWallpaperDir;
     for (var i = 0; i < entries.length; i++) {
-      final f = File('$dir/sensei_wallpaper_admin_$i.png');
+      final f = File('$dir/snapdark_wallpaper_admin_$i.png');
       var missing = !await f.exists();
       if (!missing) {
         try {
@@ -1312,7 +1312,7 @@ class ConfigService extends ChangeNotifier {
     // v48 share envelope(s). Public exports are now opaque
     // `armantunnel://<base64>` wrappers, but legacy `/base64/48/...` links
     // still import. A .st export carries one share per line.
-    final v48Lines = _senseiEnvelopeLines(text);
+    final v48Lines = _snapdarkEnvelopeLines(text);
     if (v48Lines.isNotEmpty) {
       final lines = v48Lines;
       if (lines.isEmpty) return (count: 0, last: null);
@@ -1634,9 +1634,9 @@ class ConfigService extends ChangeNotifier {
     return (count: imported, last: last);
   }
 
-  /// Extract public Sensei share lines that wrap or directly contain a native
+  /// Extract public SnapDark share lines that wrap or directly contain a native
   /// v48 envelope. Normal backup links intentionally return no match.
-  List<String> _senseiEnvelopeLines(String text) {
+  List<String> _snapdarkEnvelopeLines(String text) {
     // Chat/notes apps sometimes hard-wrap a long share token across lines.
     // When the WHOLE text (whitespace stripped) is exactly one share, import
     // that — a multi-share .st file's squashed form concatenates envelopes
@@ -1985,7 +1985,7 @@ class ConfigService extends ChangeNotifier {
     try {
       final resp = await TunnelHttpClient.get(
         Uri.parse(url),
-        headers: {'User-Agent': 'ArmanTunnel/1.0'},
+        headers: {'User-Agent': 'SnapDarkTunnel/1.0'},
       );
       if (resp.statusCode != 200) return 0;
 

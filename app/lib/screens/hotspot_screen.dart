@@ -10,10 +10,10 @@ import '../services/settings_provider.dart';
 import '../services/vpn_service.dart';
 
 import '../models/vpn_state.dart';
-import '../theme/sensei_theme.dart';
+import '../theme/snapdark_theme.dart';
 import '../widgets/app_toast.dart';
-import '../widgets/ui/sensei_controls.dart';
-import '../widgets/ui/sensei_modal.dart';
+import '../widgets/ui/snapdark_controls.dart';
+import '../widgets/ui/snapdark_modal.dart';
 
 /// Share the tunnel over a Wi-Fi hotspot.
 ///
@@ -140,7 +140,7 @@ class _HotspotScreenState extends State<HotspotScreen> {
     }
     if (_endpoints.length == 1 && !required) return true;
 
-    final selected = await SenseiModal.sheet<_HotspotEndpoint>(
+    final selected = await SnapDarkModal.sheet<_HotspotEndpoint>(
       context,
       padded: false,
       scrollable: false,
@@ -164,13 +164,13 @@ class _HotspotScreenState extends State<HotspotScreen> {
 
   Future<void> _manualEndpoint() async {
     final settings = context.read<SettingsProvider>();
-    final values = await SenseiModal.edit(
+    final values = await SnapDarkModal.edit(
       context,
       title: 'Manual Share IP',
       description: 'Use this when Android hides the hotspot interface. Enter the '
           'phone IP shown by your hotspot/tether settings.',
       fields: [
-        SenseiModalField(
+        SnapDarkModalField(
           label: 'IP address',
           hint: '192.168.43.1',
           initialValue: _ip,
@@ -217,7 +217,7 @@ class _HotspotScreenState extends State<HotspotScreen> {
             icon: const Icon(Icons.refresh_rounded),
             onPressed: _loadIp,
           ),
-          const SizedBox(width: SenseiTokens.gapXs),
+          const SizedBox(width: SnapDarkTokens.gapXs),
         ],
       ),
       body: DecoratedBox(
@@ -233,20 +233,20 @@ class _HotspotScreenState extends State<HotspotScreen> {
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(
-                maxWidth: SenseiTokens.maxContentWidth,
+                maxWidth: SnapDarkTokens.maxContentWidth,
               ),
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(
-                  SenseiTokens.pageInset,
-                  SenseiTokens.gapSm,
-                  SenseiTokens.pageInset,
-                  SenseiTokens.gapXxl,
+                  SnapDarkTokens.pageInset,
+                  SnapDarkTokens.gapSm,
+                  SnapDarkTokens.pageInset,
+                  SnapDarkTokens.gapXxl,
                 ),
                 children: [
-                  SenseiNotice(
+                  SnapDarkNotice(
                     kind: connected
-                        ? SenseiNoticeKind.success
-                        : SenseiNoticeKind.warning,
+                        ? SnapDarkNoticeKind.success
+                        : SnapDarkNoticeKind.warning,
                     icon: connected
                         ? Icons.wifi_tethering_rounded
                         : Icons.wifi_tethering_off_rounded,
@@ -256,9 +256,9 @@ class _HotspotScreenState extends State<HotspotScreen> {
                         : 'Connect the tunnel first — the proxy ports only carry '
                             'traffic while the engine is running.',
                   ),
-                  const SizedBox(height: SenseiTokens.gapLg),
+                  const SizedBox(height: SnapDarkTokens.gapLg),
                   Consumer<SettingsProvider>(
-                    builder: (context, s, _) => SenseiSwitchTile(
+                    builder: (context, s, _) => SnapDarkSwitchTile(
                       icon: Icons.wifi_tethering_rounded,
                       title: 'Hotspot Share',
                       subtitle: s.hotspotShare
@@ -280,13 +280,13 @@ class _HotspotScreenState extends State<HotspotScreen> {
                       },
                     ),
                   ),
-                  const SizedBox(height: SenseiTokens.gapLg),
-                  SenseiSection(
+                  const SizedBox(height: SnapDarkTokens.gapLg),
+                  SnapDarkSection(
                     title: 'Live Activity',
                     icon: Icons.radar_rounded,
                     caption: 'Active proxy connections on this phone',
                     children: [
-                      SenseiTile(
+                      SnapDarkTile(
                         icon: Icons.devices_rounded,
                         title: 'Active devices',
                         subtitle: _clientIps.isEmpty
@@ -305,14 +305,14 @@ class _HotspotScreenState extends State<HotspotScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: SenseiTokens.gapLg),
-                  SenseiCard(
+                  const SizedBox(height: SnapDarkTokens.gapLg),
+                  SnapDarkCard(
                     hero: true,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text('THIS PHONE', style: t.overline),
-                        const SizedBox(height: SenseiTokens.gapSm),
+                        const SizedBox(height: SnapDarkTokens.gapSm),
                         Row(
                           children: [
                             Expanded(
@@ -348,7 +348,7 @@ class _HotspotScreenState extends State<HotspotScreen> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: SenseiTokens.gapXs),
+                        const SizedBox(height: SnapDarkTokens.gapXs),
                         Text(
                           'Interface: $interfaceText',
                           style: TextStyle(
@@ -360,14 +360,14 @@ class _HotspotScreenState extends State<HotspotScreen> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: SenseiTokens.gapLg),
-                  SenseiSection(
+                  const SizedBox(height: SnapDarkTokens.gapLg),
+                  SnapDarkSection(
                     title: 'Proxy Endpoints',
                     icon: Icons.settings_input_component_rounded,
                     caption: 'OpenVPN exposes SOCKS5 only; V2Ray and SSH also '
                         'expose HTTP on 10809',
                     children: [
-                      SenseiTile(
+                      SnapDarkTile(
                         icon: Icons.dns_rounded,
                         title: 'SOCKS5',
                         subtitle:
@@ -386,7 +386,7 @@ class _HotspotScreenState extends State<HotspotScreen> {
                             server.isV2rayFamily ||
                             server.isSshFamily;
                         if (!hasHttp) return const SizedBox.shrink();
-                        return SenseiTile(
+                        return SnapDarkTile(
                           icon: Icons.http_rounded,
                           title: 'HTTP',
                           subtitle:
@@ -400,8 +400,8 @@ class _HotspotScreenState extends State<HotspotScreen> {
                       }),
                     ],
                   ),
-                  const SizedBox(height: SenseiTokens.gapLg),
-                  const SenseiSection(
+                  const SizedBox(height: SnapDarkTokens.gapLg),
+                  const SnapDarkSection(
                     title: 'How To',
                     icon: Icons.list_alt_rounded,
                     divided: false,
@@ -417,7 +417,7 @@ class _HotspotScreenState extends State<HotspotScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: SenseiTokens.gapMd),
+                  const SizedBox(height: SnapDarkTokens.gapMd),
                   Text(
                     'SSH tunnels cannot carry UDP at all, so QUIC-heavy apps on '
                     'clients may fall back to TCP.',
@@ -427,9 +427,9 @@ class _HotspotScreenState extends State<HotspotScreen> {
                       height: 1.45,
                     ),
                   ),
-                  const SizedBox(height: SenseiTokens.gapSm),
-                  const SenseiNotice(
-                    kind: SenseiNoticeKind.warning,
+                  const SizedBox(height: SnapDarkTokens.gapSm),
+                  const SnapDarkNotice(
+                    kind: SnapDarkNoticeKind.warning,
                     message:
                         'Anyone on this hotspot can use your tunnel through the '
                         'proxy above — there is no password. Share only with '
@@ -471,11 +471,11 @@ class _EndpointPicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.tokens;
-    return SenseiCard(
+    return SnapDarkCard(
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.all(SenseiTokens.gapLg),
+          padding: const EdgeInsets.all(SnapDarkTokens.gapLg),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -488,13 +488,13 @@ class _EndpointPicker extends StatelessWidget {
                   fontWeight: FontWeight.w800,
                 ),
               ),
-              const SizedBox(height: SenseiTokens.gapSm),
+              const SizedBox(height: SnapDarkTokens.gapSm),
               Text(
                 'Choose the hotspot, Wi-Fi, USB tether, Ethernet, or modem IP '
                 'clients should use for the proxy.',
                 style: TextStyle(color: t.textMuted, fontSize: 12.5),
               ),
-              const SizedBox(height: SenseiTokens.gapMd),
+              const SizedBox(height: SnapDarkTokens.gapMd),
               Flexible(
                 child: ListView.builder(
                   shrinkWrap: true,
@@ -502,7 +502,7 @@ class _EndpointPicker extends StatelessWidget {
                   itemBuilder: (context, index) {
                     final endpoint = endpoints[index];
                     final selected = endpoint.ip == selectedIp;
-                    return SenseiTile(
+                    return SnapDarkTile(
                       icon: selected
                           ? Icons.radio_button_checked_rounded
                           : Icons.radio_button_off_rounded,
@@ -550,7 +550,7 @@ class _Step extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.tokens;
     return Padding(
-      padding: const EdgeInsets.only(bottom: SenseiTokens.gapMd),
+      padding: const EdgeInsets.only(bottom: SnapDarkTokens.gapMd),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -571,7 +571,7 @@ class _Step extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: SenseiTokens.gapMd),
+          const SizedBox(width: SnapDarkTokens.gapMd),
           Expanded(
             child: Text(
               text,

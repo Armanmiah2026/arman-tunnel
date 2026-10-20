@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/server_config.dart';
-import '../theme/sensei_tokens.dart';
+import '../theme/snapdark_tokens.dart';
 
 /// Visual identity for each protocol family.
 ///
@@ -102,7 +102,7 @@ class ProtocolVisual {
   static String blurbFor(ProtocolType p) => (_map[p] ?? _fallback).blurb;
 
   /// Shade inside the brand ramp for [p].
-  static Color tint(ProtocolType p, SenseiTokens t) {
+  static Color tint(ProtocolType p, SnapDarkTokens t) {
     switch (p) {
       case ProtocolType.vless:
         return t.lime;

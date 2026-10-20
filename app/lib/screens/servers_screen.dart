@@ -14,13 +14,13 @@ import '../services/device_trial.dart';
 import '../services/server_ping_cache.dart';
 import '../services/settings_provider.dart';
 import '../utils/banner_renderer.dart';
-import '../theme/sensei_theme.dart';
+import '../theme/snapdark_theme.dart';
 import '../utils/format.dart';
 import '../widgets/app_toast.dart';
 import '../widgets/hacker_loader.dart';
 import '../widgets/server_card.dart';
-import '../widgets/ui/sensei_controls.dart';
-import '../widgets/ui/sensei_modal.dart';
+import '../widgets/ui/snapdark_controls.dart';
+import '../widgets/ui/snapdark_modal.dart';
 import '../widgets/vip_unlock_sheet.dart';
 import 'add_config_screen.dart';
 
@@ -149,7 +149,7 @@ class _ServersScreenState extends State<ServersScreen> {
   }
 
   Future<void> _delete(ServerConfig s) async {
-    final ok = await SenseiModal.confirm(
+    final ok = await SnapDarkModal.confirm(
       context,
       title: 'Delete config?',
       message: '"${s.displayName}" will be removed from this device.',
@@ -169,7 +169,7 @@ class _ServersScreenState extends State<ServersScreen> {
   /// locked share offers only note + delete — sharing or editing it would
   /// leak the sharer's protected fields.
   Future<void> _showActions(ServerConfig s) async {
-    final action = await SenseiModal.sheet<_CardAction>(
+    final action = await SnapDarkModal.sheet<_CardAction>(
       context,
       builder: (ctx) => _CardActionSheet(server: s),
     );
@@ -192,7 +192,7 @@ class _ServersScreenState extends State<ServersScreen> {
   /// Import / export behind the app-bar action — same sheet design as the
   /// card menu, replacing the stock PopupMenu dropdown.
   Future<void> _importExportSheet() async {
-    final action = await SenseiModal.sheet<String>(
+    final action = await SnapDarkModal.sheet<String>(
       context,
       builder: (ctx) => Column(
         mainAxisSize: MainAxisSize.min,
@@ -205,7 +205,7 @@ class _ServersScreenState extends State<ServersScreen> {
             color: context.tokens.lime,
             onTap: () => Navigator.pop(ctx, 'import'),
           ),
-          const SizedBox(height: SenseiTokens.gapSm),
+          const SizedBox(height: SnapDarkTokens.gapSm),
           _SheetAction(
             icon: Icons.ios_share_rounded,
             title: 'Export configs…',
@@ -239,7 +239,7 @@ class _ServersScreenState extends State<ServersScreen> {
             .split('.').first,
       if (s.locked) 'This config is locked — fields are hidden.',
     ];
-    SenseiModal.popup<void>(
+    SnapDarkModal.popup<void>(
       context,
       builder: (ctx) => AlertDialog(
         icon: Icon(Icons.sticky_note_2_outlined, color: t.accent, size: 26),
@@ -259,7 +259,7 @@ class _ServersScreenState extends State<ServersScreen> {
                 ),
               ),
               if (meta.isNotEmpty) ...[
-                const SizedBox(height: SenseiTokens.gapMd),
+                const SizedBox(height: SnapDarkTokens.gapMd),
                 Text(
                   meta.join('\n'),
                   style: TextStyle(color: t.textMuted, fontSize: 11.5),
@@ -280,13 +280,13 @@ class _ServersScreenState extends State<ServersScreen> {
 
   /// Ask for the PIN of a user-locked share before importing it.
   Future<String?> _askLockPin(String text) {
-    return SenseiModal.edit(
+    return SnapDarkModal.edit(
       context,
       title: 'Locked config',
       description: 'This config is locked by its sharer. Enter the PIN they '
           'gave you to open it.',
       fields: const [
-        SenseiModalField(label: 'Lock PIN', hint: 'required'),
+        SnapDarkModalField(label: 'Lock PIN', hint: 'required'),
       ],
       saveLabel: 'Unlock & import',
     ).then((out) => (out == null || out.isEmpty) ? null : out.first.trim());
@@ -482,7 +482,7 @@ class _ServersScreenState extends State<ServersScreen> {
             icon: const Icon(Icons.unfold_more_rounded),
             onPressed: _importExportSheet,
           ),
-          const SizedBox(width: SenseiTokens.gapXs),
+          const SizedBox(width: SnapDarkTokens.gapXs),
         ],
       ),
       body: DecoratedBox(
@@ -498,7 +498,7 @@ class _ServersScreenState extends State<ServersScreen> {
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(
-                maxWidth: SenseiTokens.maxContentWidth,
+                maxWidth: SnapDarkTokens.maxContentWidth,
               ),
               child: RefreshIndicator(
                 onRefresh: () async {
@@ -522,25 +522,25 @@ class _ServersScreenState extends State<ServersScreen> {
                 backgroundColor: t.surface,
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(
-                    SenseiTokens.pageInset,
-                    SenseiTokens.gapSm,
-                    SenseiTokens.pageInset,
-                    SenseiTokens.gapXxl * 2,
+                    SnapDarkTokens.pageInset,
+                    SnapDarkTokens.gapSm,
+                    SnapDarkTokens.pageInset,
+                    SnapDarkTokens.gapXxl * 2,
                   ),
                   children: [
-                    SenseiSearchField(
+                    SnapDarkSearchField(
                       hint: 'Search configs…',
                       onChanged: (v) =>
                           setState(() => _query = v.trim().toLowerCase()),
                     ),
                     // Three-tab switch: My Configs (only when the user has
                     // own configs), Official (always), VIP Servers (only when
-                    // VIP configs exist). Same SenseiSegmented chrome as
+                    // VIP configs exist). Same SnapDarkSegmented chrome as
                     // before — colors, rounded corners, icons, spacing and
                     // the active-tab animation are untouched.
                     if (tabs.length > 1) ...[
-                      const SizedBox(height: SenseiTokens.gap),
-                      SenseiSegmented<String>(
+                      const SizedBox(height: SnapDarkTokens.gap),
+                      SnapDarkSegmented<String>(
                         values: tabs,
                         selected: _tab,
                         onChanged: (v) => setState(() => _tab = v),
@@ -556,16 +556,16 @@ class _ServersScreenState extends State<ServersScreen> {
                         },
                       ),
                     ],
-                    const SizedBox(height: SenseiTokens.gap),
+                    const SizedBox(height: SnapDarkTokens.gap),
                     if (_tab == 'vip') ...[
                       const _BdixTrialBanner(),
-                      const SizedBox(height: SenseiTokens.gap),
+                      const SizedBox(height: SnapDarkTokens.gap),
                     ],
                     if (official.isEmpty && custom.isEmpty)
                       Padding(
                         padding:
-                            const EdgeInsets.only(top: SenseiTokens.gapXxl),
-                        child: SenseiEmptyState(
+                            const EdgeInsets.only(top: SnapDarkTokens.gapXxl),
+                        child: SnapDarkEmptyState(
                           icon: Icons.dns_rounded,
                           title: 'No configs yet',
                           message:
@@ -617,7 +617,7 @@ class _ServersScreenState extends State<ServersScreen> {
     final open = _query.isNotEmpty || !_collapsed.contains(title);
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: SenseiTokens.gapLg),
+      padding: const EdgeInsets.only(bottom: SnapDarkTokens.gapLg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -629,23 +629,23 @@ class _ServersScreenState extends State<ServersScreen> {
                 _collapsed.add(title);
               }
             }),
-            borderRadius: SenseiTokens.brSm,
+            borderRadius: SnapDarkTokens.brSm,
             child: Padding(
               padding: const EdgeInsets.symmetric(
-                horizontal: SenseiTokens.gapXs,
-                vertical: SenseiTokens.gapSm,
+                horizontal: SnapDarkTokens.gapXs,
+                vertical: SnapDarkTokens.gapSm,
               ),
               child: Row(
                 children: [
                   flag,
-                  const SizedBox(width: SenseiTokens.gapSm),
+                  const SizedBox(width: SnapDarkTokens.gapSm),
                   Text(title.toUpperCase(), style: t.overline),
-                  const SizedBox(width: SenseiTokens.gapSm),
-                  SenseiBadge(label: '${filtered.length}'),
+                  const SizedBox(width: SnapDarkTokens.gapSm),
+                  SnapDarkBadge(label: '${filtered.length}'),
                   const Spacer(),
                   AnimatedRotation(
                     turns: open ? 0 : -0.25,
-                    duration: SenseiTokens.fast,
+                    duration: SnapDarkTokens.fast,
                     child: Icon(
                       Icons.expand_more_rounded,
                       color: t.textMuted,
@@ -660,10 +660,10 @@ class _ServersScreenState extends State<ServersScreen> {
             if (filtered.isEmpty)
               Padding(
                 padding: const EdgeInsets.fromLTRB(
-                  SenseiTokens.gapXs,
+                  SnapDarkTokens.gapXs,
                   0,
                   0,
-                  SenseiTokens.gapSm,
+                  SnapDarkTokens.gapSm,
                 ),
                 child: Text(
                   emptyHint ?? 'No configs in this group',
@@ -725,7 +725,7 @@ class _CardActionSheet extends StatelessWidget {
     final t = context.tokens;
     final rows = <Widget>[];
     void add(Widget row) {
-      if (rows.isNotEmpty) rows.add(const SizedBox(height: SenseiTokens.gapSm));
+      if (rows.isNotEmpty) rows.add(const SizedBox(height: SnapDarkTokens.gapSm));
       rows.add(row);
     }
 
@@ -782,7 +782,7 @@ class _CardActionSheet extends StatelessWidget {
                 size: 21,
               ),
             ),
-            const SizedBox(width: SenseiTokens.gapMd),
+            const SizedBox(width: SnapDarkTokens.gapMd),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -812,14 +812,14 @@ class _CardActionSheet extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: SenseiTokens.gapLg),
+        const SizedBox(height: SnapDarkTokens.gapLg),
         ...rows,
       ],
     );
   }
 }
 
-/// One tappable action row inside a SenseiModal sheet.
+/// One tappable action row inside a SnapDarkModal sheet.
 class _SheetAction extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -840,19 +840,19 @@ class _SheetAction extends StatelessWidget {
     final t = context.tokens;
     return Material(
       color: Colors.transparent,
-      borderRadius: SenseiTokens.brMd,
+      borderRadius: SnapDarkTokens.brMd,
       child: InkWell(
         onTap: onTap,
-        borderRadius: SenseiTokens.brMd,
+        borderRadius: SnapDarkTokens.brMd,
         child: Container(
-          padding: const EdgeInsets.all(SenseiTokens.gapMd),
+          padding: const EdgeInsets.all(SnapDarkTokens.gapMd),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [t.surfaceAltFill, t.accentWash],
             ),
-            borderRadius: SenseiTokens.brMd,
+            borderRadius: SnapDarkTokens.brMd,
             border: Border.all(color: t.borderStrong.withValues(alpha: 0.72)),
           ),
           child: Row(
@@ -862,12 +862,12 @@ class _SheetAction extends StatelessWidget {
                 height: 34,
                 decoration: BoxDecoration(
                   color: color.withValues(alpha: 0.13),
-                  borderRadius: SenseiTokens.brSm,
+                  borderRadius: SnapDarkTokens.brSm,
                   border: Border.all(color: color.withValues(alpha: 0.35)),
                 ),
                 child: Icon(icon, color: color, size: 18),
               ),
-              const SizedBox(width: SenseiTokens.gapSm),
+              const SizedBox(width: SnapDarkTokens.gapSm),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -954,8 +954,8 @@ class _BdixTrialBannerState extends State<_BdixTrialBanner> {
     if (status == null) {
       return Container(
         padding: const EdgeInsets.symmetric(
-          horizontal: SenseiTokens.gapMd,
-          vertical: SenseiTokens.gap,
+          horizontal: SnapDarkTokens.gapMd,
+          vertical: SnapDarkTokens.gap,
         ),
         decoration: BoxDecoration(
           color: t.surface,
@@ -969,7 +969,7 @@ class _BdixTrialBannerState extends State<_BdixTrialBanner> {
               height: 16,
               child: CircularProgressIndicator(strokeWidth: 2),
             ),
-            const SizedBox(width: SenseiTokens.gapSm),
+            const SizedBox(width: SnapDarkTokens.gapSm),
             Text(
               'Checking BDIX trial status…',
               style: TextStyle(color: t.textSecondary, fontSize: 13),
@@ -981,8 +981,8 @@ class _BdixTrialBannerState extends State<_BdixTrialBanner> {
 
     return Container(
       padding: const EdgeInsets.symmetric(
-        horizontal: SenseiTokens.gapMd,
-        vertical: SenseiTokens.gap,
+        horizontal: SnapDarkTokens.gapMd,
+        vertical: SnapDarkTokens.gap,
       ),
       decoration: BoxDecoration(
         color: active ? t.accent.withValues(alpha: 0.08) : t.alert.withValues(alpha: 0.08),
@@ -998,7 +998,7 @@ class _BdixTrialBannerState extends State<_BdixTrialBanner> {
             color: active ? t.accent : t.alert,
             size: 20,
           ),
-          const SizedBox(width: SenseiTokens.gapSm),
+          const SizedBox(width: SnapDarkTokens.gapSm),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

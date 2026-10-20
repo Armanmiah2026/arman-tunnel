@@ -1,4 +1,4 @@
-# Arman Tunnel — Android VPN Client (source build guide)
+# SnapDark Tunnel — Android VPN Client (source build guide)
 
 Flutter VPN client with a native Kotlin engine. This zip is the **app only**;
 the admin panel (which produces the config feed this app consumes) ships as a

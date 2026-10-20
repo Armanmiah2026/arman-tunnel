@@ -6,10 +6,10 @@ import 'package:provider/provider.dart';
 import '../models/server_config.dart';
 import '../services/server_ping_cache.dart';
 import '../services/settings_provider.dart';
-import '../theme/sensei_theme.dart';
+import '../theme/snapdark_theme.dart';
 import '../utils/format.dart';
 import 'ui/cached_image.dart';
-import 'ui/sensei_controls.dart';
+import 'ui/snapdark_controls.dart';
 
 /// Row in the tunnel list.
 ///
@@ -52,16 +52,16 @@ class ServerCard extends StatelessWidget {
           vip: server.vip,
         );
     return Padding(
-      padding: const EdgeInsets.only(bottom: SenseiTokens.gapSm),
-      child: SenseiCard(
+      padding: const EdgeInsets.only(bottom: SnapDarkTokens.gapSm),
+      child: SnapDarkCard(
         onTap: onTap,
         active: isSelected,
-        radius: SenseiTokens.radiusMd,
-        padding: const EdgeInsets.all(SenseiTokens.gapMd),
+        radius: SnapDarkTokens.radiusMd,
+        padding: const EdgeInsets.all(SnapDarkTokens.gapMd),
         child: Row(
           children: [
             _Avatar(server: server, tint: tint),
-            const SizedBox(width: SenseiTokens.gapMd),
+            const SizedBox(width: SnapDarkTokens.gapMd),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -157,13 +157,13 @@ class ServerCard extends StatelessWidget {
                     spacing: 5,
                     runSpacing: 5,
                     children: [
-                      SenseiBadge(label: server.protocolLabel, color: tint),
-                      SenseiBadge(
+                      SnapDarkBadge(label: server.protocolLabel, color: tint),
+                      SnapDarkBadge(
                         label: server.transportLabel,
                         color: t.textMuted,
                       ),
                       if (server.methodLabel.isNotEmpty)
-                        SenseiBadge(
+                        SnapDarkBadge(
                           label: server.methodLabel,
                           color: t.lime,
                         ),
@@ -171,9 +171,9 @@ class ServerCard extends StatelessWidget {
                       // ServerPingCache while the list is on screen.
                       _PingBadge(serverId: server.id),
                       for (final f in _extras)
-                        SenseiBadge(label: f, color: t.lime),
+                        SnapDarkBadge(label: f, color: t.lime),
                       if (server.author != null && server.author!.isNotEmpty)
-                        SenseiBadge(
+                        SnapDarkBadge(
                           label: server.author!,
                           color: t.accentDeep,
                         ),
@@ -210,7 +210,7 @@ class ServerCard extends StatelessWidget {
                 message: 'Actions',
                 child: InkWell(
                   onTap: onMenu,
-                  borderRadius: SenseiTokens.brSm,
+                  borderRadius: SnapDarkTokens.brSm,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 4,
@@ -245,8 +245,8 @@ class _Avatar extends StatelessWidget {
     final url = server.logoUrl;
     if (url != null && url.trim().isNotEmpty) {
       return ClipRRect(
-        borderRadius: SenseiTokens.brSm,
-        child: SenseiCachedImage(
+        borderRadius: SnapDarkTokens.brSm,
+        child: SnapDarkCachedImage(
           url: url.trim(),
           size: 42,
           errorBuilder: (_) => _base64OrGlyph(context),
@@ -261,7 +261,7 @@ class _Avatar extends StatelessWidget {
     if (b64 != null && b64.isNotEmpty) {
       try {
         return ClipRRect(
-          borderRadius: SenseiTokens.brSm,
+          borderRadius: SnapDarkTokens.brSm,
           child: Image.memory(
             base64Decode(b64),
             width: 42,
@@ -288,7 +288,7 @@ class _Avatar extends StatelessWidget {
       alignment: Alignment.center,
       decoration: BoxDecoration(
         color: tint.withValues(alpha: 0.13),
-        borderRadius: SenseiTokens.brSm,
+        borderRadius: SnapDarkTokens.brSm,
         border: Border.all(color: tint.withValues(alpha: 0.28)),
       ),
       child: flag != null

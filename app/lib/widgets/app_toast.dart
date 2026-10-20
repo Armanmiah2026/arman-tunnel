@@ -14,7 +14,7 @@ enum ToastType { success, error, warning, info }
 class AppToast {
   const AppToast._();
 
-  static const MethodChannel _channel = MethodChannel('com.sensei.tunnel/vpn');
+  static const MethodChannel _channel = MethodChannel('com.snapdark.tunnel/vpn');
 
   /// Global messenger so error handlers WITHOUT a BuildContext (zone guard,
   /// FlutterError.onError, PlatformDispatcher.onError) can still surface a

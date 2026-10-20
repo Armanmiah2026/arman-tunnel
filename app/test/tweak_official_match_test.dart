@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sensei_tunnel/models/server_config.dart';
-import 'package:sensei_tunnel/services/config_service.dart';
+import 'package:snapdark_tunnel/models/server_config.dart';
+import 'package:snapdark_tunnel/services/config_service.dart';
 
 ServerConfig official(
   String id,

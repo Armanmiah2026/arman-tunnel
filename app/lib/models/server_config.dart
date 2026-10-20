@@ -896,7 +896,7 @@ this.capability,
   }
 
   /// Tag of the helper freedom outbound used for TLS fragmentation.
-  static const String kFragmentOutboundTag = 'sensei-fragment';
+  static const String kFragmentOutboundTag = 'snapdark-fragment';
 
   /// Fragmentation only makes sense for xray TLS/REALITY outbounds that dial
   /// the real server directly — never when the local payload injector fronts
@@ -1935,7 +1935,7 @@ this.capability,
         s.replaceAll('\r\n', r'\r\n').replaceAll('\r', r'\r').replaceAll('\n', r'\n');
     if (rawConfig == 'official:tweak' && (capability ?? '').isNotEmpty) {
       final lines = <String>[
-        '### ArmanTunnel official tweak (key=value)',
+        '### SnapDarkTunnel official tweak (key=value)',
         'name=$name',
         'official=1',
         'capability=${capability!.toUpperCase()}',
@@ -1962,7 +1962,7 @@ this.capability,
       return lines.join('\n');
     }
     final lines = <String>[
-      '### ArmanTunnel share config (key=value)',
+      '### SnapDarkTunnel share config (key=value)',
       'name=$name',
       'type=${_hcProtocolLabel.toUpperCase()}',
       'host=$address',

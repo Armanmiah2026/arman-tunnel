@@ -12,14 +12,14 @@ import 'vpn_service.dart';
 /// App-wide persisted settings (theme + engine tunables). Drives the dark/light
 /// toggle and the detailed options screen.
 class SettingsProvider extends ChangeNotifier {
-  static const _kThemeMode = 'sensei_theme_mode';
-  static const _kMtu = 'sensei_mtu';
+  static const _kThemeMode = 'snapdark_theme_mode';
+  static const _kMtu = 'snapdark_mtu';
   /// Stored as a comma-separated string so the whole ordered list round-trips
-  /// through one pref key. The old `sensei_dns1`/`sensei_dns2` keys are still
+  /// through one pref key. The old `snapdark_dns1`/`snapdark_dns2` keys are still
   /// read once, as a migration seed, then left alone.
-  static const _kDnsServers = 'sensei_dns_servers';
-  static const _kDnsLegacy1 = 'sensei_dns1';
-  static const _kDnsLegacy2 = 'sensei_dns2';
+  static const _kDnsServers = 'snapdark_dns_servers';
+  static const _kDnsLegacy1 = 'snapdark_dns1';
+  static const _kDnsLegacy2 = 'snapdark_dns2';
 
   /// Google-first, Cloudflare as backup. See [_dnsServers] for why the order
   /// and the multiplicity matter.
@@ -28,36 +28,36 @@ class SettingsProvider extends ChangeNotifier {
     '8.8.4.4',
     '1.1.1.1',
   ];
-  static const _kWakeLock = 'sensei_wakelock';
-  static const _kAutoReconnect = 'sensei_autoreconnect';
-  static const _kKillSwitch = 'sensei_killswitch';
-  static const _kBypassLan = 'sensei_bypass_lan';
-  static const _kCustomSni = 'sensei_custom_sni';
-  static const _kSplitMode = 'sensei_split_mode';
-  static const _kSplitApps = 'sensei_split_apps';
-  static const _kRouteRules = 'sensei_route_rules';
-  static const _kTlsFragment = 'sensei_tls_fragment';
-  static const _kMuxEnabled = 'sensei_mux_enabled';
-  static const _kOvpnUseOvpn3 = 'sensei_ovpn_use_ovpn3';
-  static const _kKeepAliveMode = 'sensei_keepalive_mode';
-  static const _kPingEnabled = 'sensei_ping_enabled';
-  static const _kPingLogging = 'sensei_ping_logging';
-  static const _kPingHost = 'sensei_ping_host';
-  static const _kPingHttps = 'sensei_ping_https';
-  static const _kHotspotShare = 'sensei_hotspot_share';
-  static const _kHotspotIp = 'sensei_hotspot_ip';
-  static const _kHotspotInterface = 'sensei_hotspot_interface';
-  static const _kWallpaperPath = 'sensei_wallpaper_path';
-  static const _kWallpaperDim = 'sensei_wallpaper_dim';
-  static const _kWallpaperBlur = 'sensei_wallpaper_blur';
-  static const _kWallpaperCard = 'sensei_wallpaper_card';
-  static const _kWallpaperTitle = 'sensei_wallpaper_title';
-  static const _kWallpaperEnabled = 'sensei_wallpaper_enabled';
-  static const _kUserTweakTypes = 'sensei_user_tweak_types';
+  static const _kWakeLock = 'snapdark_wakelock';
+  static const _kAutoReconnect = 'snapdark_autoreconnect';
+  static const _kKillSwitch = 'snapdark_killswitch';
+  static const _kBypassLan = 'snapdark_bypass_lan';
+  static const _kCustomSni = 'snapdark_custom_sni';
+  static const _kSplitMode = 'snapdark_split_mode';
+  static const _kSplitApps = 'snapdark_split_apps';
+  static const _kRouteRules = 'snapdark_route_rules';
+  static const _kTlsFragment = 'snapdark_tls_fragment';
+  static const _kMuxEnabled = 'snapdark_mux_enabled';
+  static const _kOvpnUseOvpn3 = 'snapdark_ovpn_use_ovpn3';
+  static const _kKeepAliveMode = 'snapdark_keepalive_mode';
+  static const _kPingEnabled = 'snapdark_ping_enabled';
+  static const _kPingLogging = 'snapdark_ping_logging';
+  static const _kPingHost = 'snapdark_ping_host';
+  static const _kPingHttps = 'snapdark_ping_https';
+  static const _kHotspotShare = 'snapdark_hotspot_share';
+  static const _kHotspotIp = 'snapdark_hotspot_ip';
+  static const _kHotspotInterface = 'snapdark_hotspot_interface';
+  static const _kWallpaperPath = 'snapdark_wallpaper_path';
+  static const _kWallpaperDim = 'snapdark_wallpaper_dim';
+  static const _kWallpaperBlur = 'snapdark_wallpaper_blur';
+  static const _kWallpaperCard = 'snapdark_wallpaper_card';
+  static const _kWallpaperTitle = 'snapdark_wallpaper_title';
+  static const _kWallpaperEnabled = 'snapdark_wallpaper_enabled';
+  static const _kUserTweakTypes = 'snapdark_user_tweak_types';
 
   /// VIP unlock expiries: configId -> millisecond-epoch when the rewarded-ad
   /// unlock runs out. Persisted as a JSON string map.
-  static const _kVipUnlocks = 'sensei_vip_unlocks';
+  static const _kVipUnlocks = 'snapdark_vip_unlocks';
 
   /// Target used when the user has not set one. `connectivitycheck.gstatic.com`
   /// answers /generate_204 with an empty 204 and is demonstrably reachable
@@ -107,7 +107,7 @@ class SettingsProvider extends ChangeNotifier {
   /// VIP rewarded-ad unlocks: configId -> native `sensei:vip:` ticket. A config
   /// that is `vip` and has no valid ticket (or a past expiry) is locked behind
   /// another watched ad. The ticket is a cert-bound AES-GCM envelope issued by
-  /// libsenseicrypto, so editing this line in SharedPreferences yields nothing
+  /// libsnapdarkcrypto, so editing this line in SharedPreferences yields nothing
   /// that verifies.
   Map<String, String> _vipTickets = <String, String>{};
 
@@ -529,12 +529,12 @@ class SettingsProvider extends ChangeNotifier {
   /// display name (admin wallpaper title / gallery file name / '').
   Future<void> setWallpaperBytes(Uint8List bytes, {String title = ''}) async {
     final dir = await getApplicationDocumentsDirectory();
-    final file = File('${dir.path}/sensei_wallpaper.png');
+    final file = File('${dir.path}/snapdark_wallpaper.png');
     await file.writeAsBytes(bytes, flush: true);
     // FileImage is cached by path, so rewriting the bytes alone would keep
     // showing the OLD decode until an app restart. Evicting the bare
     // FileImage is NOT enough: every renderer in this app decodes this file
-    // through an Image.file cacheWidth/cacheHeight (SenseiWallpaperLayer at
+    // through an Image.file cacheWidth/cacheHeight (SnapDarkWallpaperLayer at
     // screen×DPR, the sheet preview at 420px, gallery thumbs at 120px,
     // avatars at 2x size), and Flutter keys those entries as ResizeImage
     // (file path + width/height), which no single evict call can match.
@@ -631,7 +631,7 @@ class SettingsProvider extends ChangeNotifier {
 
   /// Read the resolver list, seeding from the old two-key layout once.
   ///
-  /// An install from before the list existed has `sensei_dns1/2` set (and the
+  /// An install from before the list existed has `snapdark_dns1/2` set (and the
   /// user may have deliberately chosen them — one of them being a local
   /// resolver), so honour those instead of silently overwriting with the new
   /// defaults.

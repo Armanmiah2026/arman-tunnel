@@ -11,7 +11,7 @@ The XOR scheme is: plaintext[i] = array[i] ^ key  (key in the #define).
 import re
 import sys
 
-C_FILE = "/root/back-tunnel/app/android/app/src/main/cpp/senseicrypto.c"
+C_FILE = "/root/back-tunnel/app/android/app/src/main/cpp/snapdarkcrypto.c"
 
 # New shared secrets — MUST match admin/src/crypto.js after rotation.
 # (Wire-format prefixes like `sensei:v2:` and the anti-frida needles are

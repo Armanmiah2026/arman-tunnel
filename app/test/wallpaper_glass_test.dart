@@ -4,11 +4,11 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:sensei_tunnel/services/settings_provider.dart';
-import 'package:sensei_tunnel/theme/sensei_theme.dart';
-import 'package:sensei_tunnel/widgets/sensei/theme_toggle.dart';
-import 'package:sensei_tunnel/widgets/ui/sensei_modal.dart';
-import 'package:sensei_tunnel/widgets/ui/sensei_wallpaper.dart';
+import 'package:snapdark_tunnel/services/settings_provider.dart';
+import 'package:snapdark_tunnel/theme/snapdark_theme.dart';
+import 'package:snapdark_tunnel/widgets/snapdark/theme_toggle.dart';
+import 'package:snapdark_tunnel/widgets/ui/snapdark_modal.dart';
+import 'package:snapdark_tunnel/widgets/ui/snapdark_wallpaper.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -17,8 +17,8 @@ void main() {
     GoogleFonts.config.allowRuntimeFetching = false;
   });
 
-  final glass = SenseiTokens.dark.copyWith(
-    wallpaperPath: '/data/nope/sensei_wallpaper.png',
+  final glass = SnapDarkTokens.dark.copyWith(
+    wallpaperPath: '/data/nope/snapdark_wallpaper.png',
     wallpaperDim: 0.4,
     wallpaperBlur: 6,
     wallpaperCardOpacity: 0.5,
@@ -36,7 +36,7 @@ void main() {
   test('glass tokens: LIGHT palette gets a card-opacity floor', () {
     // Light glass keeps a readability floor, but it must still remain visibly
     // translucent so the card-opacity slider actually changes the result.
-    final lightGlass = SenseiTokens.light.copyWith(
+    final lightGlass = SnapDarkTokens.light.copyWith(
       wallpaperPath: '/data/nope/wall.png',
       wallpaperCardOpacity: 0.55,
     );
@@ -56,11 +56,11 @@ void main() {
   });
 
   test('glass tokens: active card fill composites the wash on the surface', () {
-    // SenseiCard's active fill = accentWash blended ON surfaceFill. On the
+    // SnapDarkCard's active fill = accentWash blended ON surfaceFill. On the
     // LIGHT palette the floor must survive the tint without turning solid
     // white; dark intentionally keeps the raw knob, where
     // alphaBlend only softens it slightly.
-    final lightGlass = SenseiTokens.light.copyWith(
+    final lightGlass = SnapDarkTokens.light.copyWith(
       wallpaperPath: '/data/nope/wall.png',
       wallpaperCardOpacity: 0.55,
     );
@@ -70,7 +70,7 @@ void main() {
     expect(active.a, lessThan(0.90),
         reason: 'active light glass card must stay translucent');
 
-    final darkGlass = SenseiTokens.dark.copyWith(
+    final darkGlass = SnapDarkTokens.dark.copyWith(
       wallpaperPath: '/data/nope/wall.png',
       wallpaperCardOpacity: 0.55,
     );
@@ -82,46 +82,46 @@ void main() {
   });
 
   test('glass tokens off: everything stays opaque and unchanged', () {
-    const t = SenseiTokens.dark;
+    const t = SnapDarkTokens.dark;
     expect(t.glass, isFalse);
     expect(t.scaffoldBg, t.bg);
     expect(t.pageGradient, [t.bgAlt, t.bg]);
     expect(t.surfaceFill, t.surface);
   });
 
-  testWidgets('SenseiTheme.buildFor: glass theme keeps every surface '
+  testWidgets('SnapDarkTheme.buildFor: glass theme keeps every surface '
       'translucent', (tester) async {
-    final theme = SenseiTheme.buildFor(glass);
+    final theme = SnapDarkTheme.buildFor(glass);
     expect(theme.scaffoldBackgroundColor, Colors.transparent);
     expect(theme.dialogTheme.backgroundColor, glass.surfaceFill);
     expect(theme.bottomSheetTheme.backgroundColor, glass.surfaceFill);
     expect(theme.popupMenuTheme.color, glass.surfaceFill);
     // The tokens ride along as the extension so widgets can read them.
-    expect(theme.extension<SenseiTokens>(), glass);
+    expect(theme.extension<SnapDarkTokens>(), glass);
   });
 
-  testWidgets('SenseiWallpaperLayer: nothing without a wallpaper', (tester) async {
+  testWidgets('SnapDarkWallpaperLayer: nothing without a wallpaper', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
-        theme: SenseiTheme.buildFor(SenseiTokens.dark),
-        home: const Scaffold(body: SenseiWallpaperLayer()),
+        theme: SnapDarkTheme.buildFor(SnapDarkTokens.dark),
+        home: const Scaffold(body: SnapDarkWallpaperLayer()),
       ),
     );
     // Off mode must not reserve any space or paint anything.
-    expect(find.byType(SenseiWallpaperLayer), findsOneWidget);
+    expect(find.byType(SnapDarkWallpaperLayer), findsOneWidget);
     expect(
-      tester.getSize(find.byType(SenseiWallpaperLayer)),
+      tester.getSize(find.byType(SnapDarkWallpaperLayer)),
       Size.zero,
       reason: 'off-mode layer should be a shrink widget',
     );
   });
 
-  testWidgets('SenseiWallpaperLayer: paints scrim + missing-file fallback',
+  testWidgets('SnapDarkWallpaperLayer: paints scrim + missing-file fallback',
       (tester) async {
     await tester.pumpWidget(
       MaterialApp(
-        theme: SenseiTheme.buildFor(glass),
-        home: const Scaffold(body: SenseiWallpaperLayer()),
+        theme: SnapDarkTheme.buildFor(glass),
+        home: const Scaffold(body: SnapDarkWallpaperLayer()),
       ),
     );
     // testWidgets runs in a FakeAsync zone where real file IO never
@@ -149,26 +149,26 @@ void main() {
     );
   });
 
-  testWidgets('SenseiModal bool field: renders a switch and returns '
+  testWidgets('SnapDarkModal bool field: renders a switch and returns '
       'true/false strings', (tester) async {
     List<String>? saved;
     await tester.pumpWidget(
       MaterialApp(
-        theme: SenseiTheme.buildFor(SenseiTokens.dark),
+        theme: SnapDarkTheme.buildFor(SnapDarkTokens.dark),
         home: Builder(
           builder: (context) => Center(
             child: FilledButton(
               onPressed: () async {
-                saved = await SenseiModal.edit(
+                saved = await SnapDarkModal.edit(
                   context,
                   title: 'Engine',
                   fields: const [
-                    SenseiModalField(label: 'MTU', initialValue: '1500',
+                    SnapDarkModalField(label: 'MTU', initialValue: '1500',
                         number: true),
-                    SenseiModalField(
+                    SnapDarkModalField(
                         label: 'TLS Fragmentation', isBool: true,
                         initialBool: true),
-                    SenseiModalField(
+                    SnapDarkModalField(
                         label: 'Connection Mux', isBool: true,
                         initialBool: false),
                   ],
@@ -200,18 +200,18 @@ void main() {
 
     expect(saved, ['1400', 'true', 'true']);
   });
-  testWidgets('SenseiThemeToggle: tap flips the persisted theme with the '
+  testWidgets('SnapDarkThemeToggle: tap flips the persisted theme with the '
       'sun/moon animation', (tester) async {
     // Store 'dark' so the provider's async first-launch detection (which
     // follows the TEST env's light platform brightness) cannot flip it.
-    SharedPreferences.setMockInitialValues({'sensei_theme_mode': 'dark'});
+    SharedPreferences.setMockInitialValues({'snapdark_theme_mode': 'dark'});
     final settings = SettingsProvider();
     await tester.pumpWidget(
       MultiProvider(
         providers: [ChangeNotifierProvider.value(value: settings)],
         child: MaterialApp(
-          theme: SenseiTheme.buildFor(SenseiTokens.light),
-          darkTheme: SenseiTheme.buildFor(SenseiTokens.dark),
+          theme: SnapDarkTheme.buildFor(SnapDarkTokens.light),
+          darkTheme: SnapDarkTheme.buildFor(SnapDarkTokens.dark),
           themeMode: settings.themeMode,
           home: const Scaffold(
             body: Center(child: _ToggleHost()),
@@ -224,14 +224,14 @@ void main() {
 
     // Dark shows the sun (the destination); tapping flips to light + moon.
     expect(find.byIcon(Icons.light_mode_rounded), findsOneWidget);
-    await tester.tap(find.byType(SenseiThemeToggle));
+    await tester.tap(find.byType(SnapDarkThemeToggle));
     await tester.pump();
     await tester.pumpAndSettle();
     expect(settings.themeMode, ThemeMode.light);
     expect(find.byIcon(Icons.dark_mode_rounded), findsOneWidget);
 
     // And back.
-    await tester.tap(find.byType(SenseiThemeToggle));
+    await tester.tap(find.byType(SnapDarkThemeToggle));
     await tester.pumpAndSettle();
     expect(settings.themeMode, ThemeMode.dark);
   });
@@ -243,7 +243,7 @@ class _ToggleHost extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SenseiThemeToggle(
+    return SnapDarkThemeToggle(
       settings: context.watch<SettingsProvider>(),
     );
   }

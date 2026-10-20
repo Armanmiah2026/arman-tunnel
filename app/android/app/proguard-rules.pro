@@ -45,21 +45,21 @@
 # reachability; only code referenced via reflection is listed in -keep rules
 # above/below. Native (JNI/SWIG), SSH and eddsa are already -keep'd.
 -optimizationpasses 5
--repackageclasses 'sensei0'
+-repackageclasses 'snapdark0'
 -allowaccessmodification
 -overloadaggressively
 -mergeinterfacesaggressively
 
 # Flutter/Android entry points: keep class names for manifest/embedding, but let
 # R8 rename/inline the actual implementation methods.
--keep class com.sensei.tunnel.MainActivity { public <init>(...); }
+-keep class com.snapdark.tunnel.MainActivity { public <init>(...); }
 -keep class io.flutter.plugins.GeneratedPluginRegistrant { *; }
 
 # Manifest entry point: the class name and constructor must survive, internals do
 # not need readable names in release smali.
--keep class com.sensei.tunnel.SenseiTunnelVpnService { <init>(...); }
+-keep class com.snapdark.tunnel.SnapDarkTunnelVpnService { <init>(...); }
 
-# JNI_OnLoad does FindClass("com/sensei/tunnel/AppSecurity") and RegisterNatives
+# JNI_OnLoad does FindClass("com/snapdark/tunnel/AppSecurity") and RegisterNatives
 # by method name, so only this class name and its native method names are fixed.
-# Public Kotlin wrappers and every other com.sensei.tunnel helper can be renamed.
--keep class com.sensei.tunnel.AppSecurity { native <methods>; }
+# Public Kotlin wrappers and every other com.snapdark.tunnel helper can be renamed.
+-keep class com.snapdark.tunnel.AppSecurity { native <methods>; }

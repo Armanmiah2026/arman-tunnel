@@ -1,4 +1,4 @@
-# Automated Android APK build for Arman Tunnel.
+# Automated Android APK build for SnapDark Tunnel.
 #
 # Toolchain (pinned by app/README.md):
 #   Flutter 3.47.7 · JDK 17 · compileSdk/targetSdk 36 · build-tools 35
@@ -6,7 +6,7 @@
 #
 # Outputs: split-per-ABI release APKs (arm64-v8a + armeabi-v7a), signed with
 # the upload keystore stored in secrets, cert-bound config feed enabled via
-# SENSEI_EXPECTED_CERT_SHA256. The APKs are uploaded as a workflow artifact
+# SNAPDARK_EXPECTED_CERT_SHA256. The APKs are uploaded as a workflow artifact
 # AND published as a GitHub Release on the public configs repo (direct
 # download link).
 name: Build APK
@@ -35,11 +35,11 @@ jobs:
         shell: bash
         working-directory: app
     env:
-      SENSEI_STORE_FILE: upload-keystore.jks
-      SENSEI_STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-      SENSEI_KEY_ALIAS: arman2026
-      SENSEI_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-      SENSEI_EXPECTED_CERT_SHA256: ${{ secrets.APP_CERT_SHA256 }}
+      SNAPDARK_STORE_FILE: upload-keystore.jks
+      SNAPDARK_STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      SNAPDARK_KEY_ALIAS: arman2026
+      SNAPDARK_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+      SNAPDARK_EXPECTED_CERT_SHA256: ${{ secrets.APP_CERT_SHA256 }}
     steps:
       - uses: actions/checkout@v4
 
@@ -76,11 +76,11 @@ jobs:
           printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 -d > android/app/upload-keystore.jks
           test -s android/app/upload-keystore.jks || { echo "keystore decode failed"; exit 1; }
           ACTUAL=$(keytool -list -v -keystore android/app/upload-keystore.jks \
-                     -storepass "$SENSEI_STORE_PASSWORD" -alias "$SENSEI_KEY_ALIAS" 2>/dev/null \
+                     -storepass "$SNAPDARK_STORE_PASSWORD" -alias "$SNAPDARK_KEY_ALIAS" 2>/dev/null \
                    | grep -i 'SHA256:' | head -1 | sed 's/.*SHA256: *//' | tr -d ':' | tr 'A-Z' 'a-z')
           echo "keystore cert: $ACTUAL"
-          echo "feed     cert: $SENSEI_EXPECTED_CERT_SHA256"
-          test "$ACTUAL" = "$SENSEI_EXPECTED_CERT_SHA256" || {
+          echo "feed     cert: $SNAPDARK_EXPECTED_CERT_SHA256"
+          test "$ACTUAL" = "$SNAPDARK_EXPECTED_CERT_SHA256" || {
             echo "CERT MISMATCH — the config feed would refuse to decrypt on this build"; exit 1; }
           # Fail in seconds, not after an 8-minute build: AGP reads the private
           # key with KeyStore.getKey(alias, KEY_PASSWORD). keytool cannot check
@@ -100,7 +100,7 @@ jobs:
           }
           JEOF
           java /tmp/CheckKey.java android/app/upload-keystore.jks \
-            "$SENSEI_STORE_PASSWORD" "$SENSEI_KEY_ALIAS" "$SENSEI_KEY_PASSWORD"
+            "$SNAPDARK_STORE_PASSWORD" "$SNAPDARK_KEY_ALIAS" "$SNAPDARK_KEY_PASSWORD"
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
 
@@ -161,9 +161,9 @@ jobs:
           #ifndef LIBAPP_SHA256_H
           #define LIBAPP_SHA256_H
           #if defined(__aarch64__)
-          #define SENSEI_EXPECTED_LIBAPP_SHA256 "$A64_SHA"
+          #define SNAPDARK_EXPECTED_LIBAPP_SHA256 "$A64_SHA"
           #else
-          #define SENSEI_EXPECTED_LIBAPP_SHA256 "$A32_SHA"
+          #define SNAPDARK_EXPECTED_LIBAPP_SHA256 "$A32_SHA"
           #endif
           #endif
           EOF
@@ -183,8 +183,8 @@ jobs:
           VER=$(node -e "const m=require('fs').readFileSync('pubspec.yaml','utf8').match(/^version:\s*([0-9.]+)/m);console.log(m[1])")
           echo "APP_VERSION=$VER" >> "$GITHUB_ENV"
           mkdir -p dist
-          cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk "dist/Arman-Tunnel-$VER-arm64-v8a.apk"
-          cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk "dist/Arman-Tunnel-$VER-armeabi-v7a.apk"
+          cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk "dist/SnapDark-Tunnel-$VER-arm64-v8a.apk"
+          cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk "dist/SnapDark-Tunnel-$VER-armeabi-v7a.apk"
           ls -la dist/
 
       - uses: actions/upload-artifact@v4
@@ -205,7 +205,7 @@ jobs:
           TAG="v${APP_VERSION}-b${{ github.run_number }}"
           gh release create "$TAG" dist/*.apk \
             --repo Armanmiah2026/arman-tunnel-configs \
-            --title "Arman Tunnel $APP_VERSION (build ${{ github.run_number }})" \
+            --title "SnapDark Tunnel $APP_VERSION (build ${{ github.run_number }})" \
             --notes "Automated CI build. Install the APK matching your device: **arm64-v8a** (most phones) or armeabi-v7a (older/32-bit). Signed with the release key; config feed is cert-bound to it." \
           || gh release upload "$TAG" dist/*.apk --repo Armanmiah2026/arman-tunnel-configs --clobber
           echo "Release: https://github.com/Armanmiah2026/arman-tunnel-configs/releases/tag/$TAG"

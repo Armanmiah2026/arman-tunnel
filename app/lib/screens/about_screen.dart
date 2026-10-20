@@ -6,11 +6,11 @@ import 'package:url_launcher/url_launcher.dart';
 import '../services/config_service.dart';
 import '../services/obf.dart';
 import '../services/vpn_service.dart';
-import '../theme/sensei_theme.dart';
+import '../theme/snapdark_theme.dart';
 import '../widgets/app_toast.dart';
 import '../widgets/app_update_sheet.dart';
-import '../widgets/sensei_logo.dart';
-import '../widgets/ui/sensei_controls.dart';
+import '../widgets/snapdark_logo.dart';
+import '../widgets/ui/snapdark_controls.dart';
 import 'main_shell.dart';
 
 /// About: brand mark, build facts, engine list, panel-published provider
@@ -27,7 +27,7 @@ class AboutScreen extends StatelessWidget {
         cfg.providerContact.isNotEmpty ? cfg.providerContact : Obf.telegram;
     final whatsapp = cfg.providerWhatsapp;
     final provider = cfg.providerName.isNotEmpty &&
-        cfg.providerName != 'Arman Tunnel'
+        cfg.providerName != 'SnapDark Tunnel'
         ? cfg.providerName
         : '';
     return Scaffold(
@@ -46,23 +46,23 @@ class AboutScreen extends StatelessWidget {
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(
-                maxWidth: SenseiTokens.maxContentWidth,
+                maxWidth: SnapDarkTokens.maxContentWidth,
               ),
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(
-                  SenseiTokens.pageInset,
-                  SenseiTokens.gapLg,
-                  SenseiTokens.pageInset,
-                  SenseiTokens.gapXxl,
+                  SnapDarkTokens.pageInset,
+                  SnapDarkTokens.gapLg,
+                  SnapDarkTokens.pageInset,
+                  SnapDarkTokens.gapXxl,
                 ),
                 children: [
                   const Center(
-                    child: SenseiLogo(size: 112),
+                    child: SnapDarkLogo(size: 112),
                   ),
-                  const SizedBox(height: SenseiTokens.gapLg),
+                  const SizedBox(height: SnapDarkTokens.gapLg),
                   Center(
                     child: Text(
-                      'Arman Tunnel',
+                      'SnapDark Tunnel',
                       style: TextStyle(
                         color: t.text,
                         fontSize: 26,
@@ -78,7 +78,7 @@ class AboutScreen extends StatelessWidget {
                     ),
                   ),
                   if (provider.isNotEmpty) ...[
-                    const SizedBox(height: SenseiTokens.gapSm),
+                    const SizedBox(height: SnapDarkTokens.gapSm),
                     Center(
                       child: Text(
                         provider,
@@ -91,10 +91,10 @@ class AboutScreen extends StatelessWidget {
                     ),
                   ],
                   if (cfg.providerDescription.isNotEmpty) ...[
-                    const SizedBox(height: SenseiTokens.gapXs),
+                    const SizedBox(height: SnapDarkTokens.gapXs),
                     Padding(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: SenseiTokens.pageInset,
+                        horizontal: SnapDarkTokens.pageInset,
                       ),
                       child: Center(
                         child: Text(
@@ -109,19 +109,19 @@ class AboutScreen extends StatelessWidget {
                       ),
                     ),
                   ],
-                  const SizedBox(height: SenseiTokens.gapXl),
-                  SenseiSection(
+                  const SizedBox(height: SnapDarkTokens.gapXl),
+                  SnapDarkSection(
                     title: 'Build',
                     icon: Icons.badge_outlined,
                     padding: EdgeInsets.zero,
                     divided: false,
                     children: [
-                      const SenseiStatRow(
+                      const SnapDarkStatRow(
                         label: 'Version',
                         value: kAppVersion,
                         mono: true,
                       ),
-                      SenseiStatRow(
+                      SnapDarkStatRow(
                         label: 'Version code',
                         value: '${VpnService.installInfo?.versionCode ?? kAppBuildNumber}',
                         mono: true,
@@ -131,18 +131,18 @@ class AboutScreen extends StatelessWidget {
                       // opens the same update dialog in its dismissible
                       // shape. The forced path never reaches here.
                       if (cfg.updateAvailableSoft)
-                        SenseiStatRow(
+                        SnapDarkStatRow(
                           label: 'Update',
                           value: 'v${cfg.latestVersion} available',
                           valueColor: t.accent,
                         ),
-                      const SenseiStatRow(
+                      const SnapDarkStatRow(
                         label: 'Package',
-                        value: 'com.sensei.tunnel',
+                        value: 'com.snapdark.tunnel',
                         mono: true,
                         selectable: true,
                       ),
-                      SenseiStatRow(
+                      SnapDarkStatRow(
                         label: 'ABI',
                         value: VpnService.installInfo?.abiLabel ?? 'arm64-v8a',
                         mono: true,
@@ -150,7 +150,7 @@ class AboutScreen extends StatelessWidget {
                             ? t.warning
                             : null,
                       ),
-                      SenseiStatRow(
+                      SnapDarkStatRow(
                         label: 'Developer',
                         value: 'Arman Miah',
                         valueColor: t.accent,
@@ -171,48 +171,48 @@ class AboutScreen extends StatelessWidget {
                         ),
                     ],
                   ),
-                  const SizedBox(height: SenseiTokens.gapLg),
-                  const SenseiSection(
+                  const SizedBox(height: SnapDarkTokens.gapLg),
+                  const SnapDarkSection(
                     title: 'Engines',
                     icon: Icons.memory_rounded,
                     caption: 'Native cores shipped inside the APK',
                     padding: EdgeInsets.zero,
                     divided: false,
                     children: [
-                      SenseiStatRow(
+                      SnapDarkStatRow(
                         label: 'Xray-core',
                         value: 'VLESS / VMess / Trojan / SS',
                       ),
-                      SenseiStatRow(
+                      SnapDarkStatRow(
                         label: 'tun2socks',
                         value: 'TUN ↔ SOCKS bridge',
                       ),
-                      SenseiStatRow(
+                      SnapDarkStatRow(
                         label: 'Trilead SSH2',
                         value: 'SSH + payload inject',
                       ),
-                      SenseiStatRow(
+                      SnapDarkStatRow(
                         label: 'DNSTT',
                         value: 'SSH over DNS (SlowDNS)',
                       ),
-                      SenseiStatRow(
+                      SnapDarkStatRow(
                         label: 'OpenVPN3',
                         value: '.ovpn profiles via JNI',
                       ),
                     ],
                   ),
-                  const SizedBox(height: SenseiTokens.gapLg),
-                  SenseiSection(
+                  const SizedBox(height: SnapDarkTokens.gapLg),
+                  SnapDarkSection(
                     title: 'Contact',
                     icon: Icons.support_agent_rounded,
                     children: [
-                      SenseiTile(
+                      SnapDarkTile(
                         icon: Icons.person_outline_rounded,
                         title: 'App owner',
                         subtitle: '@armantunnel',
                         onTap: () => _open(context, 'https://t.me/armantunnel'),
                       ),
-                      SenseiTile(
+                      SnapDarkTile(
                         icon: Icons.handshake_outlined,
                         title: 'Contributing friend',
                         subtitle: '@ImranKhan_0_0',
@@ -220,14 +220,14 @@ class AboutScreen extends StatelessWidget {
                             _open(context, 'https://t.me/ImranKhan_0_0'),
                       ),
                       if (contact.isNotEmpty)
-                        SenseiTile(
+                        SnapDarkTile(
                           icon: Icons.send_rounded,
                           title: 'Telegram',
                           subtitle: contact,
                           onTap: () => _open(context, contact),
                         ),
                       if (whatsapp.isNotEmpty)
-                        SenseiTile(
+                        SnapDarkTile(
                           icon: Icons.chat_rounded,
                           title: 'WhatsApp',
                           subtitle: whatsapp,
@@ -239,12 +239,12 @@ class AboutScreen extends StatelessWidget {
                           ),
                         ),
                       if (provider.isNotEmpty)
-                        SenseiTile(
+                        SnapDarkTile(
                           icon: Icons.storefront_rounded,
                           title: 'Provider',
                           subtitle: provider,
                         ),
-                      SenseiTile(
+                      SnapDarkTile(
                         icon: Icons.copy_rounded,
                         title: 'Copy contact',
                         subtitle: 'Put the Telegram handle on the clipboard',
@@ -259,28 +259,28 @@ class AboutScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: SenseiTokens.gapLg),
-                  SenseiSection(
+                  const SizedBox(height: SnapDarkTokens.gapLg),
+                  SnapDarkSection(
                     title: 'Legal',
                     icon: Icons.gavel_outlined,
                     children: [
-                      SenseiTile(
+                      SnapDarkTile(
                         icon: Icons.privacy_tip_outlined,
                         title: 'Privacy Policy',
                         subtitle: 'How your data is handled',
                         onTap: () => _open(
                             context, '${Obf.adminUrl}/privacy'),
                       ),
-                      SenseiTile(
+                      SnapDarkTile(
                         icon: Icons.description_outlined,
                         title: 'Terms of Service',
-                        subtitle: 'Rules for using Arman Tunnel',
+                        subtitle: 'Rules for using SnapDark Tunnel',
                         onTap: () => _open(
                             context, '${Obf.adminUrl}/terms'),
                       ),
                     ],
                   ),
-                  const SizedBox(height: SenseiTokens.gapXl),
+                  const SizedBox(height: SnapDarkTokens.gapXl),
                   Center(
                     child: Text(
                       'Built with care',

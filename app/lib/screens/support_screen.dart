@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../theme/sensei_theme.dart';
-import '../widgets/ui/sensei_controls.dart';
+import '../theme/snapdark_theme.dart';
+import '../widgets/ui/snapdark_controls.dart';
 
 /// Offline help assistant.
 ///
@@ -82,7 +82,7 @@ class _SupportScreenState extends State<SupportScreen>
       if (_scroll.hasClients) {
         _scroll.animateTo(
           _scroll.position.maxScrollExtent,
-          duration: SenseiTokens.medium,
+          duration: SnapDarkTokens.medium,
           curve: Curves.easeOut,
         );
       }
@@ -207,12 +207,12 @@ class _SupportScreenState extends State<SupportScreen>
               _messages
                 ..clear()
                 ..add(_Msg(
-                  'Ask me anything about Arman Tunnel.',
+                  'Ask me anything about SnapDark Tunnel.',
                   false,
                 ));
             }),
           ),
-          const SizedBox(width: SenseiTokens.gapXs),
+          const SizedBox(width: SnapDarkTokens.gapXs),
         ],
       ),
       body: DecoratedBox(
@@ -228,7 +228,7 @@ class _SupportScreenState extends State<SupportScreen>
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(
-                maxWidth: SenseiTokens.maxContentWidth,
+                maxWidth: SnapDarkTokens.maxContentWidth,
               ),
               child: Column(
                 children: [
@@ -236,10 +236,10 @@ class _SupportScreenState extends State<SupportScreen>
                     child: ListView.builder(
                       controller: _scroll,
                       padding: const EdgeInsets.fromLTRB(
-                        SenseiTokens.pageInset,
-                        SenseiTokens.gapMd,
-                        SenseiTokens.pageInset,
-                        SenseiTokens.gapSm,
+                        SnapDarkTokens.pageInset,
+                        SnapDarkTokens.gapMd,
+                        SnapDarkTokens.pageInset,
+                        SnapDarkTokens.gapSm,
                       ),
                       itemCount: _messages.length + (_typing ? 1 : 0),
                       itemBuilder: (_, i) {
@@ -251,26 +251,26 @@ class _SupportScreenState extends State<SupportScreen>
                   if (_messages.length <= 2)
                     Padding(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: SenseiTokens.pageInset,
-                        vertical: SenseiTokens.gapSm,
+                        horizontal: SnapDarkTokens.pageInset,
+                        vertical: SnapDarkTokens.gapSm,
                       ),
                       child: Wrap(
-                        spacing: SenseiTokens.gapSm,
-                        runSpacing: SenseiTokens.gapSm,
+                        spacing: SnapDarkTokens.gapSm,
+                        runSpacing: SnapDarkTokens.gapSm,
                         children: _starters
                             .map((s) => GestureDetector(
                                   onTap: () => _send(s),
-                                  child: SenseiBadge(label: s),
+                                  child: SnapDarkBadge(label: s),
                                 ))
                             .toList(),
                       ),
                     ),
                   Container(
                     padding: const EdgeInsets.fromLTRB(
-                      SenseiTokens.pageInset,
-                      SenseiTokens.gapSm,
-                      SenseiTokens.pageInset,
-                      SenseiTokens.gapMd,
+                      SnapDarkTokens.pageInset,
+                      SnapDarkTokens.gapSm,
+                      SnapDarkTokens.pageInset,
+                      SnapDarkTokens.gapMd,
                     ),
                     decoration: BoxDecoration(
                       color: t.surface,
@@ -289,15 +289,15 @@ class _SupportScreenState extends State<SupportScreen>
                             ),
                           ),
                         ),
-                        const SizedBox(width: SenseiTokens.gapSm),
+                        const SizedBox(width: SnapDarkTokens.gapSm),
                         Material(
                           color: t.accent,
-                          borderRadius: SenseiTokens.brSm,
+                          borderRadius: SnapDarkTokens.brSm,
                           child: InkWell(
                             onTap: _send,
-                            borderRadius: SenseiTokens.brSm,
+                            borderRadius: SnapDarkTokens.brSm,
                             child: Padding(
-                              padding: const EdgeInsets.all(SenseiTokens.gapMd),
+                              padding: const EdgeInsets.all(SnapDarkTokens.gapMd),
                               child: Icon(
                                 Icons.send_rounded,
                                 color: t.onAccent,
@@ -330,10 +330,10 @@ class _Bubble extends StatelessWidget {
     return Align(
       alignment: mine ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
-        margin: const EdgeInsets.symmetric(vertical: SenseiTokens.gapXs),
+        margin: const EdgeInsets.symmetric(vertical: SnapDarkTokens.gapXs),
         padding: const EdgeInsets.symmetric(
-          horizontal: SenseiTokens.gapMd + 2,
-          vertical: SenseiTokens.gapMd - 1,
+          horizontal: SnapDarkTokens.gapMd + 2,
+          vertical: SnapDarkTokens.gapMd - 1,
         ),
         constraints: BoxConstraints(
           maxWidth: MediaQuery.of(context).size.width * 0.80,
@@ -342,10 +342,10 @@ class _Bubble extends StatelessWidget {
           color: mine ? t.accent : t.surface,
           border: mine ? null : Border.all(color: t.border),
           borderRadius: BorderRadius.only(
-            topLeft: const Radius.circular(SenseiTokens.radiusMd),
-            topRight: const Radius.circular(SenseiTokens.radiusMd),
-            bottomLeft: Radius.circular(mine ? SenseiTokens.radiusMd : 4),
-            bottomRight: Radius.circular(mine ? 4 : SenseiTokens.radiusMd),
+            topLeft: const Radius.circular(SnapDarkTokens.radiusMd),
+            topRight: const Radius.circular(SnapDarkTokens.radiusMd),
+            bottomLeft: Radius.circular(mine ? SnapDarkTokens.radiusMd : 4),
+            bottomRight: Radius.circular(mine ? 4 : SnapDarkTokens.radiusMd),
           ),
         ),
         child: Text(
@@ -372,19 +372,19 @@ class _TypingBubble extends StatelessWidget {
     return Align(
       alignment: Alignment.centerLeft,
       child: Container(
-        margin: const EdgeInsets.symmetric(vertical: SenseiTokens.gapXs),
+        margin: const EdgeInsets.symmetric(vertical: SnapDarkTokens.gapXs),
         padding: const EdgeInsets.symmetric(
-          horizontal: SenseiTokens.gap,
-          vertical: SenseiTokens.gapMd,
+          horizontal: SnapDarkTokens.gap,
+          vertical: SnapDarkTokens.gapMd,
         ),
         decoration: BoxDecoration(
           color: t.surface,
           border: Border.all(color: t.border),
           borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(SenseiTokens.radiusMd),
-            topRight: Radius.circular(SenseiTokens.radiusMd),
+            topLeft: Radius.circular(SnapDarkTokens.radiusMd),
+            topRight: Radius.circular(SnapDarkTokens.radiusMd),
             bottomLeft: Radius.circular(4),
-            bottomRight: Radius.circular(SenseiTokens.radiusMd),
+            bottomRight: Radius.circular(SnapDarkTokens.radiusMd),
           ),
         ),
         child: Row(

@@ -22,24 +22,24 @@ if (flutterVersionName == null) {
     flutterVersionName = '1.0.26'
 }
 
-def releaseStoreFile = System.getenv('SENSEI_STORE_FILE') ?: localProperties.getProperty('sensei.storeFile') ?: 'upload-keystore.jks'
-def releaseStorePassword = System.getenv('SENSEI_STORE_PASSWORD') ?: localProperties.getProperty('sensei.storePassword')
-def releaseKeyAlias = System.getenv('SENSEI_KEY_ALIAS') ?: localProperties.getProperty('sensei.keyAlias') ?: 'st2026'
-def releaseKeyPassword = System.getenv('SENSEI_KEY_PASSWORD') ?: localProperties.getProperty('sensei.keyPassword')
-def expectedCertSha256 = System.getenv('SENSEI_EXPECTED_CERT_SHA256') ?: localProperties.getProperty('sensei.expectedCertSha256') ?: ''
+def releaseStoreFile = System.getenv('SNAPDARK_STORE_FILE') ?: localProperties.getProperty('snapdark.storeFile') ?: 'upload-keystore.jks'
+def releaseStorePassword = System.getenv('SNAPDARK_STORE_PASSWORD') ?: localProperties.getProperty('snapdark.storePassword')
+def releaseKeyAlias = System.getenv('SNAPDARK_KEY_ALIAS') ?: localProperties.getProperty('snapdark.keyAlias') ?: 'st2026'
+def releaseKeyPassword = System.getenv('SNAPDARK_KEY_PASSWORD') ?: localProperties.getProperty('snapdark.keyPassword')
+def expectedCertSha256 = System.getenv('SNAPDARK_EXPECTED_CERT_SHA256') ?: localProperties.getProperty('snapdark.expectedCertSha256') ?: ''
 def releaseKeystore = file(releaseStoreFile)
 def hasReleaseSigning = releaseKeystore.exists() && releaseStorePassword && releaseKeyAlias && releaseKeyPassword
 
 // Dual-ABI builds (2026-09): main ships BOTH arm64-v8a and armeabi-v7a so the
 // same code produces marked per-ABI APKs (arm64 + armv7) from one build.
-// CI can restrict a run via SENSEI_ABIS (change detection: a jniLibs-only bump
+// CI can restrict a run via SNAPDARK_ABIS (change detection: a jniLibs-only bump
 // for one ABI rebuilds only that ABI's APK). Values: comma list, e.g.
 // "arm64-v8a" / "armeabi-v7a" / "arm64-v8a,armeabi-v7a". Default: both.
-def senseiAbis = (System.getenv('SENSEI_ABIS') ?: 'arm64-v8a,armeabi-v7a')
+def snapdarkAbis = (System.getenv('SNAPDARK_ABIS') ?: 'arm64-v8a,armeabi-v7a')
         .split(',').collect { it.trim() }
 
 android {
-    namespace "com.sensei.tunnel"
+    namespace "com.snapdark.tunnel"
     compileSdk 36
     // Pin the NDK: without this, AGP resolves its own default (8.4 → 26.1)
     // and auto-downloads it. 25.1.8937393 is what every shipped APK was built
@@ -63,7 +63,7 @@ android {
         main.java.srcDirs += 'src/main/kotlin'
     }
 
-    // libsenseicrypto.so — all config crypto (pepper/seeds/AES-GCM) in native.
+    // libsnapdarkcrypto.so — all config crypto (pepper/seeds/AES-GCM) in native.
     externalNativeBuild {
         cmake {
             path "src/main/cpp/CMakeLists.txt"
@@ -74,19 +74,19 @@ android {
         externalNativeBuild {
             cmake {
                 // -fomit-frame-pointer: frees r7 (Thumb FP) for the inline EABI
-                // svc wrappers in senseicrypto.c on armeabi-v7a; harmless on arm64.
+                // svc wrappers in snapdarkcrypto.c on armeabi-v7a; harmless on arm64.
                 cFlags "-O2 -fvisibility=hidden -fomit-frame-pointer"
-                abiFilters(*senseiAbis)
-                // The expected signing-cert hash is baked into libsenseicrypto.so
+                abiFilters(*snapdarkAbis)
+                // The expected signing-cert hash is baked into libsnapdarkcrypto.so
                 // as a compile definition — it never appears in the DEX
                 // (BuildConfig no longer carries it).
-                arguments "-DSENSEI_EXPECTED_CERT_SHA256=${expectedCertSha256}"
+                arguments "-DSNAPDARK_EXPECTED_CERT_SHA256=${expectedCertSha256}"
             }
         }
     }
 
     defaultConfig {
-        applicationId "com.sensei.tunnel"
+        applicationId "com.snapdark.tunnel"
         minSdk 24
         targetSdk 36
         versionCode flutterVersionCode.toInteger()
@@ -135,7 +135,7 @@ android {
             // the signing cert, so a debug APK signed with the default debug
             // keystore can NEVER fetch configs. Sign debug with the real key
             // when it is available (CI passes the secrets; local builds need
-            // sensei.* in local.properties — see KEYSTORE.md).
+            // snapdark.* in local.properties — see KEYSTORE.md).
             if (hasReleaseSigning) {
                 signingConfig signingConfigs.release
             }
@@ -158,7 +158,7 @@ android {
     packagingOptions {
         jniLibs {
             // MUST stay true: libxray/libtun2socks/libh2/libovpnexec are EXEC'd
-            // from applicationInfo.nativeLibraryDir (SenseiTunnelVpnService), and
+            // from applicationInfo.nativeLibraryDir (SnapDarkTunnelVpnService), and
             // libovpncli.so is System.load()'d by absolute path — both need the
             // libs physically extracted (extractNativeLibs=true). The Play 16 KB
             // gate is about ELF segment alignment, and every shipped .so is

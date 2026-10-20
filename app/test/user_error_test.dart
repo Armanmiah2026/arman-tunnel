@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:sensei_tunnel/models/vpn_state.dart';
-import 'package:sensei_tunnel/utils/user_error.dart';
+import 'package:snapdark_tunnel/models/vpn_state.dart';
+import 'package:snapdark_tunnel/utils/user_error.dart';
 
 // Tests run in debug mode (kReleaseMode == false), so showRaw is true and raw
 // detail is appended. The RELEASE stripping is the whole point but is compiled

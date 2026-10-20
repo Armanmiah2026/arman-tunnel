@@ -6,12 +6,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../models/server_config.dart';
-import '../theme/sensei_theme.dart';
+import '../theme/snapdark_theme.dart';
 import '../utils/banner_renderer.dart';
 import '../utils/user_error.dart';
 import '../widgets/app_toast.dart';
-import '../widgets/ui/sensei_controls.dart';
-import '../widgets/ui/sensei_modal.dart';
+import '../widgets/ui/snapdark_controls.dart';
+import '../widgets/ui/snapdark_modal.dart';
 import 'config_service.dart';
 import 'vpn_service.dart';
 
@@ -55,7 +55,7 @@ class ConfigShare {
         shareConfig.rawConfig != 'official:tweak',
       _ => false,
     };
-    final choice = await SenseiModal.sheet<String>(
+    final choice = await SnapDarkModal.sheet<String>(
       context,
       builder: (ctx) => _ShareTargetSheet(
         title: 'Share ${s.displayName}',
@@ -86,7 +86,7 @@ class ConfigShare {
         final envelope = await _buildEnvelope(context, shareConfig, out);
         if (envelope == null || !context.mounted) return;
         VpnService.shareText(envelope,
-            title: 'ArmanTunnel config (${s.displayName})');
+            title: 'SnapDarkTunnel config (${s.displayName})');
         break;
     }
   }
@@ -105,7 +105,7 @@ class ConfigShare {
     BuildContext context,
     ServerConfig s,
   ) {
-    return SenseiModal.popup<_ShareOptions>(
+    return SnapDarkModal.popup<_ShareOptions>(
       context,
       builder: (_) => _ShareOptionsDialog(config: s),
     );
@@ -213,7 +213,7 @@ class ConfigShare {
       return;
     }
     if (!context.mounted) return;
-    final choice = await SenseiModal.sheet<String>(
+    final choice = await SnapDarkModal.sheet<String>(
       context,
       builder: (ctx) => _ShareTargetSheet(
         title: 'Export ${customs.length} config(s)',
@@ -229,11 +229,11 @@ class ConfigShare {
         final n = customs.length;
         final name = n == 1
             ? '${_safeFileName(customs.first.displayName)}.st'
-            : 'senseitunnel-configs-${DateTime.now().millisecondsSinceEpoch}.st';
+            : 'snapdarktunnel-configs-${DateTime.now().millisecondsSinceEpoch}.st';
         await saveTextFile(context, text, name);
         break;
       case 'text':
-        VpnService.shareText(text, title: 'ArmanTunnel configs (.st)');
+        VpnService.shareText(text, title: 'SnapDarkTunnel configs (.st)');
         break;
     }
   }
@@ -352,13 +352,13 @@ class _ShareOptionsDialogState extends State<_ShareOptionsDialog> {
                 'All options are optional — pick any combination.',
                 style: TextStyle(color: t.textMuted, fontSize: 12),
               ),
-              const SizedBox(height: SenseiTokens.gapMd),
-              SenseiField(
+              const SizedBox(height: SnapDarkTokens.gapMd),
+              SnapDarkField(
                 label: 'File name (without extension)',
                 controller: _fileNameCtrl,
                 hint: 'My config',
               ),
-              const SizedBox(height: SenseiTokens.gapSm),
+              const SizedBox(height: SnapDarkTokens.gapSm),
               _check(
                   'Lock All',
                   _anyRestrictive
@@ -387,8 +387,8 @@ class _ShareOptionsDialogState extends State<_ShareOptionsDialog> {
               if (_usePassword)
                 Padding(
                   padding: const EdgeInsets.only(
-                      left: SenseiTokens.gapXl, top: SenseiTokens.gapXs),
-                  child: SenseiField(
+                      left: SnapDarkTokens.gapXl, top: SnapDarkTokens.gapXs),
+                  child: SnapDarkField(
                     label: 'Password',
                     controller: _passwordCtrl,
                     obscure: true,
@@ -403,7 +403,7 @@ class _ShareOptionsDialogState extends State<_ShareOptionsDialog> {
               if (_useExpiry)
                 Padding(
                   padding: const EdgeInsets.only(
-                      left: SenseiTokens.gapXl, top: SenseiTokens.gapSm),
+                      left: SnapDarkTokens.gapXl, top: SnapDarkTokens.gapSm),
                   child: Row(
                     children: [
                       TextButton.icon(
@@ -443,8 +443,8 @@ class _ShareOptionsDialogState extends State<_ShareOptionsDialog> {
               if (_blockApps)
                 Padding(
                   padding: const EdgeInsets.only(
-                      left: SenseiTokens.gapXl, top: SenseiTokens.gapXs),
-                  child: SenseiField(
+                      left: SnapDarkTokens.gapXl, top: SnapDarkTokens.gapXs),
+                  child: SnapDarkField(
                     label: 'Package names (one per line)',
                     controller: _appsCtrl,
                     maxLines: 3,
@@ -460,11 +460,11 @@ class _ShareOptionsDialogState extends State<_ShareOptionsDialog> {
               if (_useNote)
                 Padding(
                   padding: const EdgeInsets.only(
-                      left: SenseiTokens.gapXl, top: SenseiTokens.gapXs),
+                      left: SnapDarkTokens.gapXl, top: SnapDarkTokens.gapXs),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      SenseiField(
+                      SnapDarkField(
                         label: 'Note (HTML supported)',
                         controller: _noteCtrl,
                         maxLines: 4,
@@ -481,11 +481,11 @@ class _ShareOptionsDialogState extends State<_ShareOptionsDialog> {
                           return Container(
                             width: double.infinity,
                             margin:
-                                const EdgeInsets.only(top: SenseiTokens.gapXs),
-                            padding: const EdgeInsets.all(SenseiTokens.gapMd),
+                                const EdgeInsets.only(top: SnapDarkTokens.gapXs),
+                            padding: const EdgeInsets.all(SnapDarkTokens.gapMd),
                             decoration: BoxDecoration(
                               color: t.surfaceAltFill,
-                              borderRadius: SenseiTokens.brMd,
+                              borderRadius: SnapDarkTokens.brMd,
                               border: Border.all(color: t.border),
                             ),
                             child: buildShareNotePreview(context, txt),
@@ -517,7 +517,7 @@ class _ShareOptionsDialogState extends State<_ShareOptionsDialog> {
     final t = context.tokens;
     return InkWell(
       onTap: () => onChanged(!value),
-      borderRadius: SenseiTokens.brSm,
+      borderRadius: SnapDarkTokens.brSm,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 4),
         child: Row(
@@ -528,7 +528,7 @@ class _ShareOptionsDialogState extends State<_ShareOptionsDialog> {
               child: Checkbox(
                   value: value, onChanged: (v) => onChanged(v ?? false)),
             ),
-            const SizedBox(width: SenseiTokens.gapMd),
+            const SizedBox(width: SnapDarkTokens.gapMd),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -598,7 +598,7 @@ class _ShareTargetSheet extends StatelessWidget {
               ),
               child: Icon(Icons.ios_share_rounded, color: t.accent, size: 21),
             ),
-            const SizedBox(width: SenseiTokens.gapMd),
+            const SizedBox(width: SnapDarkTokens.gapMd),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -628,7 +628,7 @@ class _ShareTargetSheet extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: SenseiTokens.gapLg),
+        const SizedBox(height: SnapDarkTokens.gapLg),
         Row(
           children: [
             Expanded(
@@ -639,7 +639,7 @@ class _ShareTargetSheet extends StatelessWidget {
                 'file',
               ),
             ),
-            const SizedBox(width: SenseiTokens.gapMd),
+            const SizedBox(width: SnapDarkTokens.gapMd),
             Expanded(
               child: box(
                 Icons.text_snippet_rounded,
@@ -651,7 +651,7 @@ class _ShareTargetSheet extends StatelessWidget {
           ],
         ),
         if (includeDark) ...[
-          const SizedBox(height: SenseiTokens.gapMd),
+          const SizedBox(height: SnapDarkTokens.gapMd),
           box(
             Icons.lock_rounded,
             'Save DarkTunnel File',
@@ -683,19 +683,19 @@ class _ShareBox extends StatelessWidget {
     final t = context.tokens;
     return Material(
       color: Colors.transparent,
-      borderRadius: SenseiTokens.brMd,
+      borderRadius: SnapDarkTokens.brMd,
       child: InkWell(
         onTap: onTap,
-        borderRadius: SenseiTokens.brMd,
+        borderRadius: SnapDarkTokens.brMd,
         child: Container(
-          padding: const EdgeInsets.all(SenseiTokens.gapMd),
+          padding: const EdgeInsets.all(SnapDarkTokens.gapMd),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [t.surfaceAltFill, t.accentWash],
             ),
-            borderRadius: SenseiTokens.brMd,
+            borderRadius: SnapDarkTokens.brMd,
             border: Border.all(color: t.borderStrong.withValues(alpha: 0.72)),
           ),
           child: Row(
@@ -705,12 +705,12 @@ class _ShareBox extends StatelessWidget {
                 height: 34,
                 decoration: BoxDecoration(
                   color: t.bg.withValues(alpha: 0.35),
-                  borderRadius: SenseiTokens.brSm,
+                  borderRadius: SnapDarkTokens.brSm,
                   border: Border.all(color: t.accent.withValues(alpha: 0.28)),
                 ),
                 child: Icon(icon, color: t.accent, size: 20),
               ),
-              const SizedBox(width: SenseiTokens.gapSm),
+              const SizedBox(width: SnapDarkTokens.gapSm),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

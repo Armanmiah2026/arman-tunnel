@@ -3,10 +3,10 @@ import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sensei_tunnel/models/server_config.dart';
-import 'package:sensei_tunnel/services/config_service.dart';
-import 'package:sensei_tunnel/services/tunnel_http_client.dart';
-import 'package:sensei_tunnel/services/vpn_service.dart';
+import 'package:snapdark_tunnel/models/server_config.dart';
+import 'package:snapdark_tunnel/services/config_service.dart';
+import 'package:snapdark_tunnel/services/tunnel_http_client.dart';
+import 'package:snapdark_tunnel/services/vpn_service.dart';
 
 ServerConfig _officialTweak() => const ServerConfig(
       id: 'mine-2',
@@ -48,7 +48,7 @@ String _openEnvelope(ServerConfig c) =>
     '${base64Url.encode(utf8.encode(jsonEncode(c.toJson())))}';
 
 void _mockVpnChannel() {
-  const channel = MethodChannel('com.sensei.tunnel/vpn');
+  const channel = MethodChannel('com.snapdark.tunnel/vpn');
   TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
       .setMockMethodCallHandler(channel, (call) async {
     switch (call.method) {
@@ -82,7 +82,7 @@ void main() {
   tearDown(() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
-            const MethodChannel('com.sensei.tunnel/vpn'), null);
+            const MethodChannel('com.snapdark.tunnel/vpn'), null);
   });
 
   test('open share of a normal SSH config imports via importFromText', () async {

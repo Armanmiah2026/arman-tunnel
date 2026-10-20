@@ -5,13 +5,13 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:sensei_tunnel/models/vpn_state.dart';
-import 'package:sensei_tunnel/screens/main_shell.dart';
-import 'package:sensei_tunnel/services/config_service.dart';
-import 'package:sensei_tunnel/services/location_service.dart';
-import 'package:sensei_tunnel/services/log_service.dart';
-import 'package:sensei_tunnel/services/settings_provider.dart';
-import 'package:sensei_tunnel/theme/sensei_theme.dart';
+import 'package:snapdark_tunnel/models/vpn_state.dart';
+import 'package:snapdark_tunnel/screens/main_shell.dart';
+import 'package:snapdark_tunnel/services/config_service.dart';
+import 'package:snapdark_tunnel/services/location_service.dart';
+import 'package:snapdark_tunnel/services/log_service.dart';
+import 'package:snapdark_tunnel/services/settings_provider.dart';
+import 'package:snapdark_tunnel/theme/snapdark_theme.dart';
 
 /// Whole-app high-DPI regression suite.
 ///
@@ -33,7 +33,7 @@ void main() {
     // harmless default instead of MissingPluginException.
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
-      const MethodChannel('com.sensei.tunnel/vpn'),
+      const MethodChannel('com.snapdark.tunnel/vpn'),
       (call) async {
         switch (call.method) {
           case 'sessionInfo':
@@ -71,7 +71,7 @@ void main() {
           ChangeNotifierProvider(create: (_) => LocationService()),
         ],
         child: MaterialApp(
-          theme: SenseiTheme.dark,
+          theme: SnapDarkTheme.dark,
           home: Builder(
             builder: (context) => MediaQuery(
               data: MediaQuery.of(context)
@@ -112,7 +112,7 @@ void main() {
         (tester) async {
       await pumpShell(tester, size: size, textScale: scale);
       expect(tester.takeException(), isNull);
-      expect(find.text('SENSEI'), findsOneWidget);
+      expect(find.text('SNAPDARK'), findsOneWidget);
         });
     }
   }
@@ -141,7 +141,7 @@ void main() {
     );
     await tester.pump();
     expect(tester.takeException(), isNull);
-    expect(find.text('SENSEI'), findsOneWidget);
+    expect(find.text('SNAPDARK'), findsOneWidget);
   });
 
   testWidgets('connected dashboard with ping history lays out clean',

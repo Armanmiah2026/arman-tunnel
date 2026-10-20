@@ -7,8 +7,8 @@ import '../models/server_config.dart';
 
 /// Saved-credential preference keys (written by the Account screen). Used as a
 /// fallback when the selected config has no SSH/OpenVPN login of its own.
-const _kAccountUser = 'sensei_acc_user';
-const _kAccountPass = 'sensei_acc_pass';
+const _kAccountUser = 'snapdark_acc_user';
+const _kAccountPass = 'snapdark_acc_pass';
 
 /// Runtime build facts fetched once from the native side. The installed app
 /// reports the PER-ABI versionCode (split APKs: 59*10+1/2 → 591/592), which is
@@ -37,11 +37,11 @@ class AppInstallInfo {
 }
 
 class VpnService {
-  static const MethodChannel _channel = MethodChannel('com.sensei.tunnel/vpn');
+  static const MethodChannel _channel = MethodChannel('com.snapdark.tunnel/vpn');
   static const EventChannel _stateChannel =
-      EventChannel('com.sensei.tunnel/vpn_state');
+      EventChannel('com.snapdark.tunnel/vpn_state');
   static const EventChannel _statsChannel =
-      EventChannel('com.sensei.tunnel/vpn_stats');
+      EventChannel('com.snapdark.tunnel/vpn_stats');
 
   static Stream<String>? _stateStream;
   static Stream<Map>? _statsStream;
@@ -627,14 +627,14 @@ class VpnService {
   /// (password/HWID/expiry/root/app checks) stays untouched.
   static String wrapShareEnvelope(String envelope) {
     final json = jsonEncode({
-      'senseiShare': 48,
+      'snapdarkShare': 48,
       'envelope': envelope,
     });
     return 'armantunnel://${base64Url.encode(utf8.encode(json)).replaceAll('=', '')}';
   }
 
   /// Returns the embedded native v48 envelope when [text] is a new opaque
-  /// Sensei share, or null for normal backup links / malformed text.
+  /// SnapDark share, or null for normal backup links / malformed text.
   static String? unwrapShareEnvelope(String text) {
     const prefix = 'armantunnel://';
     final t = text.trim();
@@ -645,7 +645,7 @@ class VpnService {
       final payload = t.substring(prefix.length).trim();
       final json = utf8.decode(base64Url.decode(base64Url.normalize(payload)));
       final data = jsonDecode(json);
-      if (data is! Map || data['senseiShare'] != 48) return null;
+      if (data is! Map || data['snapdarkShare'] != 48) return null;
       final envelope = data['envelope']?.toString() ?? '';
       return envelope.startsWith('armantunnel://base64/48/') ? envelope : null;
     } catch (_) {
@@ -707,7 +707,7 @@ class VpnService {
     } on PlatformException {/* */}
   }
 
-  /// Read a config file the user "opened with" ArmanTunnel (a content://
+  /// Read a config file the user "opened with" SnapDarkTunnel (a content://
   /// URI from a file manager). Returns its text, or null on failure.
   static Future<String?> readConfigFile(String uri) async {
     try {

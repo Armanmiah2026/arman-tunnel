@@ -5,10 +5,10 @@ import '../models/server_config.dart';
 import '../services/ad_service.dart';
 import '../services/device_trial.dart';
 import '../services/settings_provider.dart';
-import '../theme/sensei_theme.dart';
+import '../theme/snapdark_theme.dart';
 import 'app_toast.dart';
-import 'ui/sensei_controls.dart';
-import 'ui/sensei_modal.dart';
+import 'ui/snapdark_controls.dart';
+import 'ui/snapdark_modal.dart';
 
 /// VIP rewarded-ad unlock flow.
 ///
@@ -42,7 +42,7 @@ Future<bool> ensureVipUnlocked(
   // switch and the gate returns for every VIP config.
   if (!AdConfig.adsEnabled) return true;
 
-  final unlocked = await SenseiModal.sheet<bool>(
+  final unlocked = await SnapDarkModal.sheet<bool>(
     context,
     scrollable: false,
     maxHeightFactor: 0.8,
@@ -142,7 +142,7 @@ class _VipUnlockSheetState extends State<_VipUnlockSheet> {
                   color: t.lime, size: 32),
             ),
           ),
-          const SizedBox(height: SenseiTokens.gapMd),
+          const SizedBox(height: SnapDarkTokens.gapMd),
           Text(
             'VIP Server',
             textAlign: TextAlign.center,
@@ -160,7 +160,7 @@ class _VipUnlockSheetState extends State<_VipUnlockSheet> {
             textAlign: TextAlign.center,
             style: TextStyle(color: t.textMuted, fontSize: 13.5, height: 1.45),
           ),
-          const SizedBox(height: SenseiTokens.gapMd),
+          const SizedBox(height: SnapDarkTokens.gapMd),
           // What the unlock actually buys — scannable, not a paragraph.
           Wrap(
             alignment: WrapAlignment.center,
@@ -173,7 +173,7 @@ class _VipUnlockSheetState extends State<_VipUnlockSheet> {
             ],
           ),
           if (note.isNotEmpty) ...[
-            const SizedBox(height: SenseiTokens.gapMd),
+            const SizedBox(height: SnapDarkTokens.gapMd),
             // Admin's VIP note (panel → vipNote).
             Container(
               width: double.infinity,
@@ -203,8 +203,8 @@ class _VipUnlockSheetState extends State<_VipUnlockSheet> {
               ),
             ),
           ],
-          const SizedBox(height: SenseiTokens.gapLg),
-          SenseiPrimaryButton(
+          const SizedBox(height: SnapDarkTokens.gapLg),
+          SnapDarkPrimaryButton(
             label: 'Watch ad to unlock',
             icon: Icons.play_circle_fill_rounded,
             busy: _busy,

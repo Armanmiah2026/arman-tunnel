@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Arman Tunnel — brand asset generator (Violet Pulse rebrand).
+"""SnapDark Tunnel — brand asset generator (Violet Pulse rebrand).
 
 Regenerates every raster brand asset from ONE source (the supplied avatar
 `app_logo.jpg`): launcher icons (legacy + adaptive foreground), the native
 launch-splash lockup, and the in-app logo marks.
 
-Brand rules (keep in sync with lib/theme/sensei_tokens.dart):
+Brand rules (keep in sync with lib/theme/snapdark_tokens.dart):
   bg      #0B0913   near-black violet (launcher_background / native splash)
   accent  #7C3AED   violet
   light   #C084FC   electric lavender (wordmark accent)
@@ -186,30 +186,30 @@ def main() -> int:
 
     # 2. Native launch-splash lockup (per-density, dimensions preserved).
     for name in densities:
-        path = os.path.join(RES, f"drawable-{name}", "sensei_splash.png")
+        path = os.path.join(RES, f"drawable-{name}", "snapdark_splash.png")
         size = existing_size(path, int(300 * densities[name] / 1.5))
         save(lockup(src, size), path)
 
     # 3. In-app assets (pubspec assets:) — dimensions preserved.
-    save(lockup(src, existing_size(os.path.join(ASSETS, "sensei_splash.png"), 600)),
-         os.path.join(ASSETS, "sensei_splash.png"))
-    save(lockup(src, existing_size(os.path.join(ASSETS, "sensei_logo.png"), 512)),
-         os.path.join(ASSETS, "sensei_logo.png"))
-    save(avatar_tile(src, existing_size(os.path.join(ASSETS, "sensei_mark.png"), 512)),
-         os.path.join(ASSETS, "sensei_mark.png"))
+    save(lockup(src, existing_size(os.path.join(ASSETS, "snapdark_splash.png"), 600)),
+         os.path.join(ASSETS, "snapdark_splash.png"))
+    save(lockup(src, existing_size(os.path.join(ASSETS, "snapdark_logo.png"), 512)),
+         os.path.join(ASSETS, "snapdark_logo.png"))
+    save(avatar_tile(src, existing_size(os.path.join(ASSETS, "snapdark_mark.png"), 512)),
+         os.path.join(ASSETS, "snapdark_mark.png"))
 
     # 4. Android drawable copies (unused by XML but shipped in the APK).
     drawable = os.path.join(RES, "drawable")
-    save(lockup(src, existing_size(os.path.join(drawable, "sensei_logo.png"), 512)),
-         os.path.join(drawable, "sensei_logo.png"))
-    save(lockup(src, existing_size(os.path.join(drawable, "sensei_logo_dark.png"), 512),
+    save(lockup(src, existing_size(os.path.join(drawable, "snapdark_logo.png"), 512)),
+         os.path.join(drawable, "snapdark_logo.png"))
+    save(lockup(src, existing_size(os.path.join(drawable, "snapdark_logo_dark.png"), 512),
                 dark_text=True),
-         os.path.join(drawable, "sensei_logo_dark.png"))
-    save(avatar_tile(src, existing_size(os.path.join(drawable, "sensei_mark.png"), 512)),
-         os.path.join(drawable, "sensei_mark.png"))
+         os.path.join(drawable, "snapdark_logo_dark.png"))
+    save(avatar_tile(src, existing_size(os.path.join(drawable, "snapdark_mark.png"), 512)),
+         os.path.join(drawable, "snapdark_mark.png"))
 
     print("\nDone. Re-run after logo changes; keep launcher_background (#0B0913) "
-          "in sync with lib/theme/sensei_tokens.dart.")
+          "in sync with lib/theme/snapdark_tokens.dart.")
     return 0
 
 

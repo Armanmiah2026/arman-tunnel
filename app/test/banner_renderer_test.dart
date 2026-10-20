@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:sensei_tunnel/theme/sensei_theme.dart';
-import 'package:sensei_tunnel/utils/banner_renderer.dart';
+import 'package:snapdark_tunnel/theme/snapdark_theme.dart';
+import 'package:snapdark_tunnel/utils/banner_renderer.dart';
 
 /// Collect the rendered text of every span, so we can assert what the user sees.
 String _plain(List<InlineSpan> spans) {
@@ -53,7 +53,7 @@ void main() {
     Future<void> pump(WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          theme: SenseiTheme.dark,
+          theme: SnapDarkTheme.dark,
           home: Builder(
             builder: (c) {
               ctx = c;
@@ -68,10 +68,10 @@ void main() {
       await pump(tester);
       final spans = buildHtmlSpans(
         ctx,
-        '<font color="lime">Welcome</font> to <b>Sensei</b>',
+        '<font color="lime">Welcome</font> to <b>SnapDark</b>',
         const TextStyle(),
       );
-      expect(_plain(spans), 'Welcome to Sensei');
+      expect(_plain(spans), 'Welcome to SnapDark');
     });
 
     testWidgets('applies bold from markup', (tester) async {
@@ -131,7 +131,7 @@ void main() {
     testWidgets('renders MOTD markup without showing tags', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          theme: SenseiTheme.dark,
+          theme: SnapDarkTheme.dark,
           home: Builder(
             builder: (c) => Scaffold(
               body: buildBannerWidget(

@@ -25,14 +25,14 @@ class DeviceTrial {
   DeviceTrial._();
   static final DeviceTrial instance = DeviceTrial._();
 
-  static const MethodChannel _channel = MethodChannel('com.sensei.tunnel/vpn');
+  static const MethodChannel _channel = MethodChannel('com.snapdark.tunnel/vpn');
 
   String? _deviceId;
   Map<String, dynamic>? _status;
 
   /// Last known admin-granted VIP flag, persisted so the VIP-server gate
   /// works offline on the next cold start (before the CDN status read).
-  static const _kVipFlag = 'sensei_device_vip';
+  static const _kVipFlag = 'snapdark_device_vip';
   bool _vipCached = false;
 
   /// Stable hardware id, or null when the platform call fails.

@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
-import '../theme/sensei_theme.dart';
+import '../theme/snapdark_theme.dart';
 
 /// Animated particle-network background used by the splash screen.
 ///

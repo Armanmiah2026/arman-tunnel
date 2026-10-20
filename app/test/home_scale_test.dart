@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import 'package:sensei_tunnel/theme/sensei_theme.dart';
-import 'package:sensei_tunnel/widgets/sensei/bottom_nav_bar.dart';
+import 'package:snapdark_tunnel/theme/snapdark_theme.dart';
+import 'package:snapdark_tunnel/widgets/snapdark/bottom_nav_bar.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -20,10 +20,10 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
-        theme: SenseiTheme.dark,
+        theme: SnapDarkTheme.dark,
         home: const Scaffold(
-          bottomNavigationBar: SenseiBottomNavBar(
-            activeTab: SenseiTab.home,
+          bottomNavigationBar: SnapDarkBottomNavBar(
+            activeTab: SnapDarkTab.home,
             onTabSelected: _noop,
           ),
         ),
@@ -37,13 +37,13 @@ void main() {
   // Reference: exactly 1.0 on a standard 360x760 logical-dp phone (the
   // current design must not change there), and one shared smaller factor on
   // low-DPI / small screens.
-  test('senseiScale is 1.0 at the reference size', () {
+  test('snapdarkScale is 1.0 at the reference size', () {
     expect(_scaleFor(const Size(360, 760)), 1.0);
     expect(_scaleFor(const Size(412, 915)), 1.0);
     expect(_scaleFor(const Size(1080, 2400)), 1.0);
   });
 
-  test('senseiScale shrinks on small/low-DPI screens, floored at 0.75', () {
+  test('snapdarkScale shrinks on small/low-DPI screens, floored at 0.75', () {
     // 320x569 logical (a 480p-class low-DPI phone): height-driven 0.749
     // lands on the floor.
     expect(_scaleFor(const Size(320, 569)), 0.75);
@@ -65,10 +65,10 @@ void main() {
   });
 }
 
-void _noop(SenseiTab _) {}
+void _noop(SnapDarkTab _) {}
 
 double _scaleFor(Size size) {
-  // Mirrors senseiScale's formula for a pure check (the widget test above
+  // Mirrors snapdarkScale's formula for a pure check (the widget test above
   // exercises the real function on the widget tree).
   final s = size;
   return (s.width / 360 < s.height / 760 ? s.width / 360 : s.height / 760)

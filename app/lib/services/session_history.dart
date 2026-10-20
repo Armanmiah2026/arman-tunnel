@@ -9,8 +9,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// (or app restart, where it is closed out as "interrupted"). Totals come from
 /// the native stats stream (session deltas).
 class SessionHistory extends ChangeNotifier {
-  static const _storageKey = 'sensei_session_history';
-  static const _activeKey = 'sensei_session_active';
+  static const _storageKey = 'snapdark_session_history';
+  static const _activeKey = 'snapdark_session_active';
   static const _maxEntries = 60;
 
   SessionHistory._();

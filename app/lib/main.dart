@@ -12,14 +12,14 @@ import 'services/config_service.dart';
 import 'services/device_trial.dart';
 import 'services/vpn_service.dart';
 import 'widgets/app_toast.dart';
-import 'widgets/ui/sensei_modal.dart';
-import 'widgets/ui/sensei_wallpaper.dart';
+import 'widgets/ui/snapdark_modal.dart';
+import 'widgets/ui/snapdark_wallpaper.dart';
 import 'services/error_capture_service.dart';
 import 'services/location_service.dart';
 import 'services/log_service.dart';
 import 'services/settings_provider.dart';
 import 'services/ad_service.dart';
-import 'theme/sensei_theme.dart';
+import 'theme/snapdark_theme.dart';
 
 void main() {
   runZonedGuarded(() async {
@@ -38,7 +38,7 @@ void main() {
           ChangeNotifierProvider(create: (_) => LogService()),
           ChangeNotifierProvider(create: (_) => LocationService()),
         ],
-        child: const SenseiTunnelApp(),
+        child: const SnapDarkTunnelApp(),
       ),
     );
   }, (e, st) {
@@ -51,15 +51,15 @@ void main() {
   });
 }
 
-class SenseiTunnelApp extends StatefulWidget {
-  const SenseiTunnelApp({super.key});
+class SnapDarkTunnelApp extends StatefulWidget {
+  const SnapDarkTunnelApp({super.key});
 
   @override
-  State<SenseiTunnelApp> createState() => _SenseiTunnelAppState();
+  State<SnapDarkTunnelApp> createState() => _SnapDarkTunnelAppState();
 }
 
-class _SenseiTunnelAppState extends State<SenseiTunnelApp> {
-  static const platform = MethodChannel('com.sensei.tunnel/vpn');
+class _SnapDarkTunnelAppState extends State<SnapDarkTunnelApp> {
+  static const platform = MethodChannel('com.snapdark.tunnel/vpn');
 
   late final SettingsProvider _settings;
 
@@ -98,7 +98,7 @@ class _SenseiTunnelAppState extends State<SenseiTunnelApp> {
 
     Future<String?> askPin(String title, String hint) async {
       final pinCtrl = TextEditingController();
-      final ok = await SenseiModal.popup<bool>(
+      final ok = await SnapDarkModal.popup<bool>(
         context,
         builder: (ctx) => AlertDialog(
           icon: Icon(Icons.lock_outline_rounded,
@@ -245,14 +245,14 @@ class _SenseiTunnelAppState extends State<SenseiTunnelApp> {
     final settings = context.watch<SettingsProvider>();
     // Wallpaper Mode rides the THEME, not a per-screen stack: the glass knobs
     // (path/dim/blur/card opacity) are folded into the active palette and the
-    // theme is rebuilt through SenseiTheme.buildFor, so every Material
+    // theme is rebuilt through SnapDarkTheme.buildFor, so every Material
     // surface — pages, dialogs, sheets, menus, the drawer — turns glass
     // together. The wallpaper itself is painted once, at the root, by
-    // [SenseiWallpaperLayer] (see builder below). The layer's dim scrim is
+    // [SnapDarkWallpaperLayer] (see builder below). The layer's dim scrim is
     // palette-aware, so BOTH themes render it (dark = near-black scrim,
     // light = near-white frost) and text keeps contrast in either mode.
     final wallpaperActive = settings.hasWallpaper;
-    SenseiTokens decorate(SenseiTokens base) => wallpaperActive
+    SnapDarkTokens decorate(SnapDarkTokens base) => wallpaperActive
         ? base.copyWith(
             wallpaperPath: settings.wallpaperPath,
             wallpaperBytes: settings.wallpaperBytes,
@@ -262,11 +262,11 @@ class _SenseiTunnelAppState extends State<SenseiTunnelApp> {
           )
         : base;
     return MaterialApp(
-      title: 'Arman Tunnel',
+      title: 'SnapDark Tunnel',
       debugShowCheckedModeBanner: false,
       scaffoldMessengerKey: AppToast.messengerKey,
-      theme: SenseiTheme.buildFor(decorate(SenseiTokens.light)),
-      darkTheme: SenseiTheme.buildFor(decorate(SenseiTokens.dark)),
+      theme: SnapDarkTheme.buildFor(decorate(SnapDarkTokens.light)),
+      darkTheme: SnapDarkTheme.buildFor(decorate(SnapDarkTokens.dark)),
       themeMode: settings.themeMode,
       // Keep text scaling sane: the connect dial and the pill nav break down
       // past ~1.3x, and system fonts on some OEM ROMs default very large.
@@ -309,7 +309,7 @@ class _SenseiTunnelAppState extends State<SenseiTunnelApp> {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                const SenseiWallpaperLayer(),
+                const SnapDarkWallpaperLayer(),
                 child ?? const SizedBox.shrink(),
               ],
             ),

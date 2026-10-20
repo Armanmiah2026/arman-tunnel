@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../services/settings_provider.dart';
-import '../theme/sensei_theme.dart';
+import '../theme/snapdark_theme.dart';
 import '../widgets/app_toast.dart';
-import '../widgets/ui/sensei_controls.dart';
-import '../widgets/ui/sensei_modal.dart';
+import '../widgets/ui/snapdark_controls.dart';
+import '../widgets/ui/snapdark_modal.dart';
 
 /// Custom routing rules.
 ///
@@ -43,18 +43,18 @@ class RouteRulesScreen extends StatelessWidget {
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(
-                maxWidth: SenseiTokens.maxContentWidth,
+                maxWidth: SnapDarkTokens.maxContentWidth,
               ),
               child: Column(
                 children: [
                   const Padding(
                     padding: EdgeInsets.fromLTRB(
-                      SenseiTokens.pageInset,
-                      SenseiTokens.gapSm,
-                      SenseiTokens.pageInset,
-                      SenseiTokens.gapMd,
+                      SnapDarkTokens.pageInset,
+                      SnapDarkTokens.gapSm,
+                      SnapDarkTokens.pageInset,
+                      SnapDarkTokens.gapMd,
                     ),
-                    child: SenseiNotice(
+                    child: SnapDarkNotice(
                       message: 'Rules apply before the default proxy route on '
                           'the next connection. Domains are grouped first, then '
                           'IPs; they are built into the xray config, so SSH and '
@@ -63,7 +63,7 @@ class RouteRulesScreen extends StatelessWidget {
                   ),
                   Expanded(
                     child: rules.isEmpty
-                        ? SenseiEmptyState(
+                        ? SnapDarkEmptyState(
                             icon: Icons.alt_route_rounded,
                             title: 'No rules yet',
                             message: 'Add a domain, geosite, IP or CIDR to send '
@@ -73,10 +73,10 @@ class RouteRulesScreen extends StatelessWidget {
                           )
                         : ListView.builder(
                             padding: const EdgeInsets.fromLTRB(
-                              SenseiTokens.pageInset,
+                              SnapDarkTokens.pageInset,
                               0,
-                              SenseiTokens.pageInset,
-                              SenseiTokens.gapXxl * 2,
+                              SnapDarkTokens.pageInset,
+                              SnapDarkTokens.gapXxl * 2,
                             ),
                             itemCount: rules.length,
                             itemBuilder: (_, i) {
@@ -84,13 +84,13 @@ class RouteRulesScreen extends StatelessWidget {
                               final block = rule['action'] == 'block';
                               return Padding(
                                 padding: const EdgeInsets.only(
-                                  bottom: SenseiTokens.gapSm,
+                                  bottom: SnapDarkTokens.gapSm,
                                 ),
-                                child: SenseiCard(
-                                  radius: SenseiTokens.radiusMd,
+                                child: SnapDarkCard(
+                                  radius: SnapDarkTokens.radiusMd,
                                   padding: const EdgeInsets.symmetric(
-                                    horizontal: SenseiTokens.gapMd,
-                                    vertical: SenseiTokens.gapSm,
+                                    horizontal: SnapDarkTokens.gapMd,
+                                    vertical: SnapDarkTokens.gapSm,
                                   ),
                                   child: Row(
                                     children: [
@@ -101,7 +101,7 @@ class RouteRulesScreen extends StatelessWidget {
                                         decoration: BoxDecoration(
                                           color: (block ? t.alert : t.accent)
                                               .withValues(alpha: 0.13),
-                                          borderRadius: SenseiTokens.brSm,
+                                          borderRadius: SnapDarkTokens.brSm,
                                         ),
                                         child: Icon(
                                           block
@@ -112,7 +112,7 @@ class RouteRulesScreen extends StatelessWidget {
                                         ),
                                       ),
                                       const SizedBox(
-                                          width: SenseiTokens.gapMd),
+                                          width: SnapDarkTokens.gapMd),
                                       Expanded(
                                         child: Column(
                                           crossAxisAlignment:
@@ -171,7 +171,7 @@ class RouteRulesScreen extends StatelessWidget {
     final controller = TextEditingController();
     var action = 'direct';
 
-    final added = await SenseiModal.sheet<bool>(
+    final added = await SnapDarkModal.sheet<bool>(
       context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setSheet) {
@@ -180,13 +180,13 @@ class RouteRulesScreen extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              SenseiSheetHeader(
+              SnapDarkSheetHeader(
                 title: 'Add Route Rule',
                 caption: 'Domain, geosite, IP or CIDR',
                 onClose: () => Navigator.pop(ctx, false),
               ),
-              const SizedBox(height: SenseiTokens.gapMd),
-              SenseiField(
+              const SizedBox(height: SnapDarkTokens.gapMd),
+              SnapDarkField(
                 label: 'Match',
                 controller: controller,
                 hint: 'netflix.com   •   1.2.3.4/24   •   2606:4700::/32',
@@ -197,14 +197,14 @@ class RouteRulesScreen extends StatelessWidget {
                 autofocus: true,
                 mono: true,
               ),
-              SenseiOptionRow(
+              SnapDarkOptionRow(
                 icon: Icons.alt_route_rounded,
                 title: 'Direct',
                 subtitle: 'Send this traffic around the tunnel',
                 selected: action == 'direct',
                 onTap: () => setSheet(() => action = 'direct'),
               ),
-              SenseiOptionRow(
+              SnapDarkOptionRow(
                 icon: Icons.block_rounded,
                 title: 'Block',
                 subtitle: 'Drop this traffic on the device',
@@ -212,8 +212,8 @@ class RouteRulesScreen extends StatelessWidget {
                 tint: t.alert,
                 onTap: () => setSheet(() => action = 'block'),
               ),
-              const SizedBox(height: SenseiTokens.gapSm),
-              SenseiPrimaryButton(
+              const SizedBox(height: SnapDarkTokens.gapSm),
+              SnapDarkPrimaryButton(
                 label: 'Add Rule',
                 icon: Icons.add_rounded,
                 onPressed: () {

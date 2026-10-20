@@ -7,8 +7,8 @@
 #ifndef LIBAPP_SHA256_H
 #define LIBAPP_SHA256_H
 #if defined(__aarch64__)
-#define SENSEI_EXPECTED_LIBAPP_SHA256 ""
+#define SNAPDARK_EXPECTED_LIBAPP_SHA256 ""
 #else
-#define SENSEI_EXPECTED_LIBAPP_SHA256 ""
+#define SNAPDARK_EXPECTED_LIBAPP_SHA256 ""
 #endif
 #endif

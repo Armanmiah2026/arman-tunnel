@@ -8,7 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:sensei_tunnel/services/settings_provider.dart';
+import 'package:snapdark_tunnel/services/settings_provider.dart';
 
 /// A real, tiny PNG. Fixed base64 so only the codec (which works in this
 /// tester) is exercised — never the render pipeline (`picture.toImage`
@@ -25,7 +25,7 @@ void main() {
   setUp(() async {
     GoogleFonts.config.allowRuntimeFetching = false;
     SharedPreferences.setMockInitialValues({});
-    docs = await Directory.systemTemp.createTemp('sensei_wall_apply');
+    docs = await Directory.systemTemp.createTemp('snapdark_wall_apply');
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
       const MethodChannel('plugins.flutter.io/path_provider'),
@@ -86,7 +86,7 @@ void main() {
 
   testWidgets('applying a wallpaper purges the stale decode immediately — no '
       'restart needed', (tester) async {
-    final file = File('${docs.path}/sensei_wallpaper.png');
+    final file = File('${docs.path}/snapdark_wallpaper.png');
     await tester.runAsync(() {
       return file.writeAsBytes(pngBytes, flush: true);
     });
@@ -112,7 +112,7 @@ void main() {
 
   testWidgets('clearing the wallpaper empties the decode cache too',
       (tester) async {
-    final file = File('${docs.path}/sensei_wallpaper.png');
+    final file = File('${docs.path}/snapdark_wallpaper.png');
     await tester.runAsync(
         () => file.writeAsBytes(pngBytes, flush: true));
     await pumpResizeDecodedImage(tester, file.path);
@@ -120,7 +120,7 @@ void main() {
     // An applied wallpaper records its path in prefs — that is what makes
     // `clearWallpaper` take the "really clear" branch.
     SharedPreferences.setMockInitialValues(
-        {'sensei_wallpaper_path': file.path});
+        {'snapdark_wallpaper_path': file.path});
     final settings = SettingsProvider();
     await tester.pumpAndSettle();
     await tester.runAsync(() => settings.clearWallpaper());
@@ -133,7 +133,7 @@ void main() {
   testWidgets('applying from an existing file (admin pick) also clears the '
       'cache', (tester) async {
     final source = File('${docs.path}/admin_0.png');
-    final target = File('${docs.path}/sensei_wallpaper.png');
+    final target = File('${docs.path}/snapdark_wallpaper.png');
     await tester.runAsync(() async {
       await source.writeAsBytes(pngBytes, flush: true);
       await target.writeAsBytes(pngBytes, flush: true);

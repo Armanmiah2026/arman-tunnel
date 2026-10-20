@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:sensei_tunnel/theme/sensei_theme.dart';
-import 'package:sensei_tunnel/widgets/sensei/connection_area.dart';
+import 'package:snapdark_tunnel/theme/snapdark_theme.dart';
+import 'package:snapdark_tunnel/widgets/snapdark/connection_area.dart';
 
 Widget _host(Size screen, Widget child) {
   return MediaQuery(
     data: MediaQueryData(size: screen),
     child: MaterialApp(
-      theme: SenseiTheme.dark,
+      theme: SnapDarkTheme.dark,
       home: Scaffold(body: child),
     ),
   );
@@ -16,7 +16,7 @@ Widget _host(Size screen, Widget child) {
 
 /// The FittedBox the dial builds is the art's real rendered box.
 Finder _dialArt() => find.descendant(
-      of: find.byType(SenseiConnectionDial),
+      of: find.byType(SnapDarkConnectionDial),
       matching: find.byType(FittedBox),
       matchRoot: true,
     );
@@ -31,7 +31,7 @@ void main() {
     await tester.pumpWidget(
       _host(
         const Size(320, 568),
-        SenseiConnectionDial(
+        SnapDarkConnectionDial(
           isConnected: false,
           isConnecting: false,
           durationText: '00:00:00',
@@ -57,7 +57,7 @@ void main() {
     await tester.pumpWidget(
       _host(
         const Size(900, 1280),
-        SenseiConnectionDial(
+        SnapDarkConnectionDial(
           isConnected: true,
           isConnecting: false,
           durationText: '01:00:00',
@@ -83,7 +83,7 @@ void main() {
     await tester.pumpWidget(
       _host(
         const Size(360, 760),
-        SenseiConnectionDial(
+        SnapDarkConnectionDial(
           isConnected: false,
           isConnecting: true,
           durationText: '00:00:00',

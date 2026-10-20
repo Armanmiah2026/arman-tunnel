@@ -7,7 +7,7 @@ import '../utils/user_error.dart';
 import '../widgets/app_toast.dart';
 
 class LogService extends ChangeNotifier {
-  static const _storageKey = 'sensei_connection_logs';
+  static const _storageKey = 'snapdark_connection_logs';
   static const _maxEntries = 250;
 
   final List<String> _entries = [];

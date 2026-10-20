@@ -7,9 +7,9 @@ import '../models/server_config.dart';
 import '../models/vpn_state.dart';
 import '../services/config_service.dart';
 import '../services/settings_provider.dart';
-import '../theme/sensei_theme.dart';
+import '../theme/snapdark_theme.dart';
 import '../utils/format.dart';
-import '../widgets/ui/sensei_controls.dart';
+import '../widgets/ui/snapdark_controls.dart';
 
 /// Live engine state: connection, throughput, transport, engine tunables and
 /// config source. Refreshes once a second while open.
@@ -70,50 +70,50 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(
-                maxWidth: SenseiTokens.maxContentWidth,
+                maxWidth: SnapDarkTokens.maxContentWidth,
               ),
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(
-                  SenseiTokens.pageInset,
-                  SenseiTokens.gapSm,
-                  SenseiTokens.pageInset,
-                  SenseiTokens.gapXxl,
+                  SnapDarkTokens.pageInset,
+                  SnapDarkTokens.gapSm,
+                  SnapDarkTokens.pageInset,
+                  SnapDarkTokens.gapXxl,
                 ),
                 children: [
-                  SenseiNotice(
+                  SnapDarkNotice(
                     kind: ok
-                        ? SenseiNoticeKind.success
-                        : SenseiNoticeKind.warning,
+                        ? SnapDarkNoticeKind.success
+                        : SnapDarkNoticeKind.warning,
                     message: ok
                         ? 'Tunnel is up. Traffic counters below come from the '
                             'native engine, and the state was confirmed by a real '
                             'round-trip through the local SOCKS port.'
                         : 'Tunnel is down. Connect to see live counters.',
                   ),
-                  const SizedBox(height: SenseiTokens.gapLg),
-                  SenseiSection(
+                  const SizedBox(height: SnapDarkTokens.gapLg),
+                  SnapDarkSection(
                     title: 'Session',
                     icon: Icons.timeline_rounded,
                     padding: EdgeInsets.zero,
                     divided: false,
                     children: [
-                      SenseiStatRow(
+                      SnapDarkStatRow(
                         label: 'State',
                         value: vpn.connectionStateText,
                         valueColor: ok ? t.accent : t.textMuted,
                       ),
-                      SenseiStatRow(
+                      SnapDarkStatRow(
                         label: 'Uptime',
                         value: formatDuration(vpn.connectionDuration),
                         mono: true,
                       ),
-                      SenseiStatRow(
+                      SnapDarkStatRow(
                         label: 'Tunnel',
                         value: vpn.connectedServerName.isNotEmpty
                             ? vpn.connectedServerName
                             : (server?.displayName ?? '—'),
                       ),
-                      SenseiStatRow(
+                      SnapDarkStatRow(
                         label: 'Endpoint',
                         value: server == null
                             ? '—'
@@ -123,66 +123,66 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: SenseiTokens.gapLg),
-                  SenseiSection(
+                  const SizedBox(height: SnapDarkTokens.gapLg),
+                  SnapDarkSection(
                     title: 'Traffic',
                     icon: Icons.swap_vert_rounded,
                     padding: EdgeInsets.zero,
                     divided: false,
                     children: [
-                      SenseiStatRow(
+                      SnapDarkStatRow(
                         label: 'Download',
                         value: formatRate(vpn.downloadSpeed),
                         mono: true,
                         valueColor: ok ? t.accent : t.textMuted,
                       ),
-                      SenseiStatRow(
+                      SnapDarkStatRow(
                         label: 'Upload',
                         value: formatRate(vpn.uploadSpeed),
                         mono: true,
                         valueColor: ok ? t.accent : t.textMuted,
                       ),
-                      SenseiStatRow(
+                      SnapDarkStatRow(
                         label: 'Total down',
                         value: formatBytes(vpn.totalDownload),
                         mono: true,
                       ),
-                      SenseiStatRow(
+                      SnapDarkStatRow(
                         label: 'Total up',
                         value: formatBytes(vpn.totalUpload),
                         mono: true,
                       ),
                     ],
                   ),
-                  const SizedBox(height: SenseiTokens.gapLg),
-                  SenseiSection(
+                  const SizedBox(height: SnapDarkTokens.gapLg),
+                  SnapDarkSection(
                     title: 'Transport',
                     icon: Icons.lan_rounded,
                     padding: EdgeInsets.zero,
                     divided: false,
                     children: [
-                      SenseiStatRow(
+                      SnapDarkStatRow(
                         label: 'Protocol',
                         value: server == null
                             ? '—'
                             : ProtocolVisual.labelFor(server.protocol),
                       ),
-                      SenseiStatRow(
+                      SnapDarkStatRow(
                         label: 'Network',
                         value: server?.transportLabel ?? '—',
                       ),
-                      SenseiStatRow(
+                      SnapDarkStatRow(
                         label: 'Security',
                         value:
                             server?.security.name.toUpperCase() ?? '—',
                       ),
-                      SenseiStatRow(
+                      SnapDarkStatRow(
                         label: 'Inject',
                         value: server == null
                             ? '—'
                             : server.injectMode.name.toUpperCase(),
                       ),
-                      SenseiStatRow(
+                      SnapDarkStatRow(
                         label: 'SNI',
                         value: s.customSni.isNotEmpty
                             ? '${s.customSni} (override)'
@@ -193,69 +193,69 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: SenseiTokens.gapLg),
-                  SenseiSection(
+                  const SizedBox(height: SnapDarkTokens.gapLg),
+                  SnapDarkSection(
                     title: 'Local Ports',
                     icon: Icons.settings_input_component_rounded,
                     caption: 'Only ports actually used by this tunnel are listed',
                     padding: EdgeInsets.zero,
                     divided: false,
                     children: [
-                      const SenseiStatRow(
+                      const SnapDarkStatRow(
                         label: 'SOCKS5',
                         value: '0.0.0.0:10808',
                         mono: true,
                         selectable: true,
                       ),
                       if (server == null || server.isV2rayFamily)
-                        const SenseiStatRow(
+                        const SnapDarkStatRow(
                           label: 'HTTP',
                           value: '0.0.0.0:10809',
                           mono: true,
                           selectable: true,
                         ),
                       if (server != null && server.v2rayInjectActive)
-                        const SenseiStatRow(
+                        const SnapDarkStatRow(
                           label: 'Inject relay',
                           value: '127.0.0.1:8089',
                           mono: true,
                         ),
                       if (server != null && server.isSshFamily)
-                        const SenseiStatRow(
+                        const SnapDarkStatRow(
                           label: 'DNS-over-TCP',
                           value: '127.0.0.1:7353',
                           mono: true,
                         ),
                     ],
                   ),
-                  const SizedBox(height: SenseiTokens.gapLg),
-                  SenseiSection(
+                  const SizedBox(height: SnapDarkTokens.gapLg),
+                  SnapDarkSection(
                     title: 'Engine & Source',
                     icon: Icons.memory_rounded,
                     padding: EdgeInsets.zero,
                     divided: false,
                     children: [
-                      SenseiStatRow(label: 'MTU', value: '${s.mtu}', mono: true),
-                      SenseiStatRow(
+                      SnapDarkStatRow(label: 'MTU', value: '${s.mtu}', mono: true),
+                      SnapDarkStatRow(
                         label: 'DNS',
                         value: '${s.dnsPrimary} / ${s.dnsSecondary}',
                         mono: true,
                       ),
-                      SenseiStatRow(
+                      SnapDarkStatRow(
                         label: 'Split mode',
                         value: s.splitTunnelActive
                             ? '${s.splitMode} (${s.splitApps.length})'
                             : 'off',
                       ),
-                      SenseiStatRow(
+                      SnapDarkStatRow(
                         label: 'Route rules',
                         value: '${s.routeRules.length}',
                       ),
-                      SenseiStatRow(
+                      SnapDarkStatRow(
                         label: 'Official',
                         value: '${cfg.officialServers.length} tunnels',
                       ),
-                      SenseiStatRow(
+                      SnapDarkStatRow(
                         label: 'Custom',
                         value: '${cfg.customServers.length} tunnels',
                       ),

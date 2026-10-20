@@ -5,15 +5,15 @@ import 'package:provider/provider.dart';
 import '../app_meta.dart';
 export '../app_meta.dart' show kAppVersion, kAppBuildNumber;
 import '../models/vpn_state.dart';
-import '../theme/sensei_theme.dart';
+import '../theme/snapdark_theme.dart';
 import '../widgets/app_toast.dart';
-import '../widgets/sensei/about_dialog.dart';
-import '../widgets/sensei/bottom_nav_bar.dart';
-import '../widgets/sensei/navigation_drawer.dart';
-import '../widgets/sensei/speed_test_modal.dart';
-import '../widgets/ui/sensei_modal.dart';
+import '../widgets/snapdark/about_dialog.dart';
+import '../widgets/snapdark/bottom_nav_bar.dart';
+import '../widgets/snapdark/navigation_drawer.dart';
+import '../widgets/snapdark/speed_test_modal.dart';
+import '../widgets/ui/snapdark_modal.dart';
 import 'log_screen.dart';
-import 'sensei_home_screen.dart';
+import 'snapdark_home_screen.dart';
 import 'servers_screen.dart';
 import 'settings_screen.dart';
 
@@ -40,7 +40,7 @@ class _MainShellState extends State<MainShell>
 
   late final AnimationController _drawerController;
   late final Animation<double> _drawerCurve;
-  SenseiTab _tab = SenseiTab.home;
+  SnapDarkTab _tab = SnapDarkTab.home;
   DateTime? _lastBackPress;
 
   bool get _isDrawerOpen => _drawerController.value > 0;
@@ -113,7 +113,7 @@ class _MainShellState extends State<MainShell>
     _animateDrawer(open: _drawerController.value >= 0.5);
   }
 
-  void _selectTab(SenseiTab t) {
+  void _selectTab(SnapDarkTab t) {
     if (_tab == t) return;
     setState(() => _tab = t);
   }
@@ -127,8 +127,8 @@ class _MainShellState extends State<MainShell>
       _closeDrawer();
       return;
     }
-    if (_tab != SenseiTab.home) {
-      setState(() => _tab = SenseiTab.home);
+    if (_tab != SnapDarkTab.home) {
+      setState(() => _tab = SnapDarkTab.home);
       return;
     }
     final now = DateTime.now();
@@ -150,18 +150,18 @@ class _MainShellState extends State<MainShell>
           'through it');
       return;
     }
-    SenseiModal.sheet<void>(
+    SnapDarkModal.sheet<void>(
       context,
       padded: false,
       scrollable: false,
-      builder: (_) => const SenseiSpeedTestSheet(),
+      builder: (_) => const SnapDarkSpeedTestSheet(),
     );
   }
 
   void _openAbout() {
-    SenseiModal.popup<void>(
+    SnapDarkModal.popup<void>(
       context,
-      builder: (_) => const SenseiAboutDialog(version: kAppVersion),
+      builder: (_) => const SnapDarkAboutDialog(version: kAppVersion),
     );
   }
 
@@ -186,7 +186,7 @@ class _MainShellState extends State<MainShell>
         ignoring: _drawerController.value <= 0,
         child: Opacity(
           opacity: 0.72 + (0.28 * animationValue),
-          child: SenseiNavigationDrawer(
+          child: SnapDarkNavigationDrawer(
             currentTab: _tab,
             version: kAppVersion,
             onNavigateTab: _selectTab,
@@ -230,21 +230,21 @@ class _MainShellState extends State<MainShell>
                   body: IndexedStack(
                     index: _tab.index,
                     children: [
-                      SenseiHomeScreen(
+                      SnapDarkHomeScreen(
                         onMenuClick: _openDrawer,
-                        onOpenConfigs: () => _selectTab(SenseiTab.configs),
+                        onOpenConfigs: () => _selectTab(SnapDarkTab.configs),
                         onOpenSpeedTest: _openSpeedTest,
                       ),
                       ServersScreen(
                         // Inside the shell there is nothing to pop; jump to
                         // Home instead.
-                        onServerSelected: () => _selectTab(SenseiTab.home),
+                        onServerSelected: () => _selectTab(SnapDarkTab.home),
                       ),
                       const LogScreen(),
                       const SettingsScreen(),
                     ],
                   ),
-                  bottomNavigationBar: SenseiBottomNavBar(
+                  bottomNavigationBar: SnapDarkBottomNavBar(
                     activeTab: _tab,
                     onTabSelected: _selectTab,
                   ),

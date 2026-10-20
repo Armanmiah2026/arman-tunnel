@@ -5,12 +5,12 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:sensei_tunnel/screens/settings_screen.dart';
-import 'package:sensei_tunnel/services/config_service.dart';
-import 'package:sensei_tunnel/services/log_service.dart';
-import 'package:sensei_tunnel/services/settings_provider.dart';
-import 'package:sensei_tunnel/theme/sensei_theme.dart';
-import 'package:sensei_tunnel/widgets/ui/sensei_controls.dart';
+import 'package:snapdark_tunnel/screens/settings_screen.dart';
+import 'package:snapdark_tunnel/services/config_service.dart';
+import 'package:snapdark_tunnel/services/log_service.dart';
+import 'package:snapdark_tunnel/services/settings_provider.dart';
+import 'package:snapdark_tunnel/theme/snapdark_theme.dart';
+import 'package:snapdark_tunnel/widgets/ui/snapdark_controls.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -22,7 +22,7 @@ void main() {
     // any storage or network access.
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
-      const MethodChannel('com.sensei.tunnel/vpn'),
+      const MethodChannel('com.snapdark.tunnel/vpn'),
       (call) async => false,
     );
   });
@@ -48,7 +48,7 @@ void main() {
           ChangeNotifierProvider(create: (_) => LogService()),
         ],
         child: MaterialApp(
-          theme: SenseiTheme.dark,
+          theme: SnapDarkTheme.dark,
           home: Builder(
             builder: (context) => MediaQuery(
               data: MediaQuery.of(context)
@@ -112,12 +112,12 @@ void main() {
     expect(top('TLS & Mux'), greaterThan(top('Direct / Block')));
 
     // Cards in a row share the SAME height (IntrinsicHeight row). Measured
-    // on the SenseiCard containers, not the texts — a 2-line title centres
+    // on the SnapDarkCard containers, not the texts — a 2-line title centres
     // differently inside its row than a 1-line one.
     double cardBottom(String text) => tester.getBottomLeft(
           find.ancestor(
             of: find.text(text),
-            matching: find.byType(SenseiCard),
+            matching: find.byType(SnapDarkCard),
           ),
         ).dy;
     expect(cardBottom('MTU'), closeTo(cardBottom('DNS Servers'), 1));
@@ -151,14 +151,14 @@ void main() {
       (tester) async {
     // Seed dark so the provider's first-launch detection (which follows the
     // TEST env's light platform brightness) cannot race the expectation.
-    SharedPreferences.setMockInitialValues({'sensei_theme_mode': 'dark'});
+    SharedPreferences.setMockInitialValues({'snapdark_theme_mode': 'dark'});
     final settings = await pumpScreen(tester);
 
     // No chevron / value text anymore — the selector is the control.
     expect(find.text('Theme'), findsOneWidget);
     final themeCard = find.ancestor(
       of: find.text('Theme'),
-      matching: find.byType(SenseiCard),
+      matching: find.byType(SnapDarkCard),
     );
     expect(
       find.descendant(of: themeCard, matching: find.byType(Switch)),
@@ -184,7 +184,7 @@ void main() {
     final initial = settings.wakeLock;
     final cardFinder = find.ancestor(
       of: find.text('Wake Lock'),
-      matching: find.byType(SenseiCard),
+      matching: find.byType(SnapDarkCard),
     );
 
     await tester.tap(find.text('Wake Lock'));

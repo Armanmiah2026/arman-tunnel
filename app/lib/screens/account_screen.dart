@@ -4,9 +4,9 @@ import 'package:provider/provider.dart';
 
 import '../services/config_service.dart';
 import '../services/device_trial.dart';
-import '../theme/sensei_theme.dart';
+import '../theme/snapdark_theme.dart';
 import '../widgets/app_toast.dart';
-import '../widgets/ui/sensei_controls.dart';
+import '../widgets/ui/snapdark_controls.dart';
 
 /// My Access — the user's BDIX trial status, device id, and license keys.
 ///
@@ -80,17 +80,17 @@ class _AccountScreenState extends State<AccountScreen> {
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(
-                maxWidth: SenseiTokens.maxContentWidth,
+                maxWidth: SnapDarkTokens.maxContentWidth,
               ),
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(
-                  SenseiTokens.pageInset,
-                  SenseiTokens.gapSm,
-                  SenseiTokens.pageInset,
-                  SenseiTokens.gapXxl,
+                  SnapDarkTokens.pageInset,
+                  SnapDarkTokens.gapSm,
+                  SnapDarkTokens.pageInset,
+                  SnapDarkTokens.gapXxl,
                 ),
                 children: [
-                  SenseiSection(
+                  SnapDarkSection(
                     title: 'BDIX Trial',
                     icon: Icons.workspace_premium_rounded,
                     divided: false,
@@ -98,7 +98,7 @@ class _AccountScreenState extends State<AccountScreen> {
                       if (_loading)
                         const Center(
                           child: Padding(
-                            padding: EdgeInsets.all(SenseiTokens.gapLg),
+                            padding: EdgeInsets.all(SnapDarkTokens.gapLg),
                             child: CircularProgressIndicator(),
                           ),
                         )
@@ -118,7 +118,7 @@ class _AccountScreenState extends State<AccountScreen> {
                                       : t.alert,
                               size: vip ? 24 : 22,
                             ),
-                            const SizedBox(width: SenseiTokens.gapSm),
+                            const SizedBox(width: SnapDarkTokens.gapSm),
                             Expanded(
                               child: Text(
                                 vip
@@ -147,7 +147,7 @@ class _AccountScreenState extends State<AccountScreen> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: SenseiTokens.gapSm),
+                        const SizedBox(height: SnapDarkTokens.gapSm),
                         Text(
                           vip
                               ? 'You have permanent VIP access. The admin granted this after your trial.'
@@ -161,22 +161,22 @@ class _AccountScreenState extends State<AccountScreen> {
                           ),
                         ),
                         if (vip) ...[
-                          const SizedBox(height: SenseiTokens.gapMd),
+                          const SizedBox(height: SnapDarkTokens.gapMd),
                           const _VipPerkRow(
                               label: 'VIP servers open instantly — no ads'),
                           const _VipPerkRow(
                               label: 'Premium server pool, always included'),
                         ],
                         if (!active) ...[
-                          const SizedBox(height: SenseiTokens.gapMd),
-                          SenseiPrimaryButton(
+                          const SizedBox(height: SnapDarkTokens.gapMd),
+                          SnapDarkPrimaryButton(
                             label: 'Contact admin (Telegram)',
                             icon: Icons.send_rounded,
                             onPressed: () => _openContact(context, contact),
                           ),
                           if (whatsapp.isNotEmpty) ...[
-                            const SizedBox(height: SenseiTokens.gapSm),
-                            SenseiPrimaryButton(
+                            const SizedBox(height: SnapDarkTokens.gapSm),
+                            SnapDarkPrimaryButton(
                               label: 'Contact admin (WhatsApp)',
                               icon: Icons.chat_rounded,
                               onPressed: () => _openContact(
@@ -191,8 +191,8 @@ class _AccountScreenState extends State<AccountScreen> {
                       ],
                     ],
                   ),
-                  const SizedBox(height: SenseiTokens.gapLg),
-                  SenseiSection(
+                  const SizedBox(height: SnapDarkTokens.gapLg),
+                  SnapDarkSection(
                     title: 'Device',
                     icon: Icons.smartphone_rounded,
                     divided: false,
@@ -209,7 +209,7 @@ class _AccountScreenState extends State<AccountScreen> {
                         },
                       ),
                       if ((_status?['deviceKey'] ?? '').toString().isNotEmpty) ...[
-                        const SizedBox(height: SenseiTokens.gapSm),
+                        const SizedBox(height: SnapDarkTokens.gapSm),
                         _Row(
                           label: 'Device Key',
                           value: _status!['deviceKey'].toString(),
@@ -224,7 +224,7 @@ class _AccountScreenState extends State<AccountScreen> {
                           },
                         ),
                       ],
-                      const SizedBox(height: SenseiTokens.gapSm),
+                      const SizedBox(height: SnapDarkTokens.gapSm),
                       Text(
                         'Tap the copy icon to send your Device ID to the admin. It is generated from your hardware and survives app delete + reinstall — a reinstall cannot farm a fresh trial.',
                         style: TextStyle(
@@ -235,8 +235,8 @@ class _AccountScreenState extends State<AccountScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: SenseiTokens.gapLg),
-                  SenseiSection(
+                  const SizedBox(height: SnapDarkTokens.gapLg),
+                  SnapDarkSection(
                     title: 'License Keys',
                     icon: Icons.key_rounded,
                     divided: false,
@@ -253,11 +253,11 @@ class _AccountScreenState extends State<AccountScreen> {
                       else
                         ..._keys.map(
                           (k) => Padding(
-                            padding: const EdgeInsets.only(bottom: SenseiTokens.gapSm),
+                            padding: const EdgeInsets.only(bottom: SnapDarkTokens.gapSm),
                             child: Row(
                               children: [
                                 Icon(Icons.vpn_key_rounded, color: t.accent, size: 18),
-                                const SizedBox(width: SenseiTokens.gapSm),
+                                const SizedBox(width: SnapDarkTokens.gapSm),
                                 Expanded(
                                   child: Text(
                                     k,
@@ -315,11 +315,11 @@ class _VipPerkRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.tokens;
     return Padding(
-      padding: const EdgeInsets.only(bottom: SenseiTokens.gapXs),
+      padding: const EdgeInsets.only(bottom: SnapDarkTokens.gapXs),
       child: Row(
         children: [
           Icon(Icons.verified_rounded, color: t.accent, size: 16),
-          const SizedBox(width: SenseiTokens.gapSm),
+          const SizedBox(width: SnapDarkTokens.gapSm),
           Expanded(
             child: Text(
               label,

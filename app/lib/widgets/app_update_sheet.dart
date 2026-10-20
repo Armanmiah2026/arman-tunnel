@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import '../services/config_service.dart';
 import '../utils/user_error.dart';
 import '../services/vpn_service.dart';
-import '../theme/sensei_theme.dart';
+import '../theme/snapdark_theme.dart';
 import 'app_toast.dart';
-import 'ui/sensei_modal.dart';
+import 'ui/snapdark_modal.dart';
 
 /// Update dialog — the ONE updater UI for both shapes.
 ///
@@ -22,7 +22,7 @@ Future<void> showAppUpdate(
 }) async {
   final t = context.tokens;
   var downloading = false;
-  await SenseiModal.popup<void>(
+  await SnapDarkModal.popup<void>(
     context,
     dismissible: !forced,
     builder: (ctx) => StatefulBuilder(
@@ -41,8 +41,8 @@ Future<void> showAppUpdate(
               cfg.updateMessage.isNotEmpty
                   ? cfg.updateMessage
                   : (forced
-                      ? 'Install the latest Arman Tunnel version to continue.'
-                      : 'A newer Arman Tunnel version is available.'),
+                      ? 'Install the latest SnapDark Tunnel version to continue.'
+                      : 'A newer SnapDark Tunnel version is available.'),
               textAlign: TextAlign.center,
             ),
             if (downloading) ...[

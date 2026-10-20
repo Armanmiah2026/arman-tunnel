@@ -8,10 +8,10 @@ import 'package:provider/provider.dart';
 
 import '../services/config_service.dart';
 import '../services/settings_provider.dart';
-import '../theme/sensei_theme.dart';
+import '../theme/snapdark_theme.dart';
 import '../widgets/app_toast.dart';
-import '../widgets/ui/sensei_controls.dart';
-import '../widgets/ui/sensei_modal.dart';
+import '../widgets/ui/snapdark_controls.dart';
+import '../widgets/ui/snapdark_modal.dart';
 import 'route_rules_screen.dart';
 import 'split_tunnel_screen.dart';
 
@@ -48,7 +48,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(
-                maxWidth: SenseiTokens.maxContentWidth,
+                maxWidth: SnapDarkTokens.maxContentWidth,
               ),
               // Fully scrollable, laid out by CONTENT height: no card is ever
               // squeezed into a fixed Expanded slot (the old paged layout
@@ -58,10 +58,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               // navigation on every screen size.
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(
-                  SenseiTokens.pageInset,
-                  SenseiTokens.gapSm,
-                  SenseiTokens.pageInset,
-                  SenseiTokens.gapLg,
+                  SnapDarkTokens.pageInset,
+                  SnapDarkTokens.gapSm,
+                  SnapDarkTokens.pageInset,
+                  SnapDarkTokens.gapLg,
                 ),
                 child: Consumer<SettingsProvider>(
                   builder: (context, s, _) => Column(
@@ -70,11 +70,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       const _SectionHeader(
                           title: 'Connection', icon: Icons.link_rounded),
                       _CardGrid(children: _connectionCards(s)),
-                      const SizedBox(height: SenseiTokens.gap),
+                      const SizedBox(height: SnapDarkTokens.gap),
                       const _SectionHeader(
                           title: 'Appearance', icon: Icons.palette_outlined),
                       _CardGrid(children: _appearanceCards(context, s)),
-                      const SizedBox(height: SenseiTokens.gap),
+                      const SizedBox(height: SnapDarkTokens.gap),
                       const _SectionHeader(
                           title: 'Engine', icon: Icons.memory_rounded),
                       _CardGrid(children: _engineCards(context, s)),
@@ -212,11 +212,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   /// Wallpaper Mode configuration: standard bottom sheet with a LIVE
-  /// preview (the picked image rendered behind sample Sensei cards), the two
+  /// preview (the picked image rendered behind sample SnapDark cards), the two
   /// sources, and dim/blur/card-opacity sliders. Nothing touches
   /// the app background until "Apply".
   Future<void> _editWallpaper(BuildContext context, SettingsProvider s) {
-    return SenseiModal.sheet<void>(
+    return SnapDarkModal.sheet<void>(
       context,
       maxHeightFactor: 0.94,
       builder: (sheetCtx) => _WallpaperConfigSheet(settings: s),
@@ -252,13 +252,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _editMtu(BuildContext context, SettingsProvider s) async {
-    final values = await SenseiModal.edit(
+    final values = await SnapDarkModal.edit(
       context,
       title: 'MTU',
       description: 'Valid range 576–1500. 1500 is the default; drop to 1400 or '
           '1280 when packets are fragmented on mobile networks.',
       fields: [
-        SenseiModalField(
+        SnapDarkModalField(
           label: 'Bytes',
           hint: '1500',
           initialValue: '${s.mtu}',
@@ -275,13 +275,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
   /// accepts any number of resolvers and tries them in order, so more than two
   /// is the only way one bad DNS stops breaking the whole tunnel.
   Future<void> _editDns(BuildContext context, SettingsProvider s) async {
-    final values = await SenseiModal.edit(
+    final values = await SnapDarkModal.edit(
       context,
       title: 'DNS Servers',
       description:
           'Comma-separated, tried in order. Google first is the safe default on local BDIX exits — a Cloudflare-only setup fails to resolve YouTube there.',
       fields: [
-        SenseiModalField(
+        SnapDarkModalField(
           label: 'Resolvers',
           hint: SettingsProvider.defaultDnsServers.join(', '),
           initialValue: s.dnsServers.join(', '),
@@ -300,29 +300,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   /// Ping card: target + HTTPS toggle in one dialog.
   Future<void> _editPing(BuildContext context, SettingsProvider s) async {
-    final values = await SenseiModal.edit(
+    final values = await SnapDarkModal.edit(
       context,
       title: 'Ping Probe',
       description: 'The probe sends a real HTTP request here and times the '
           'response. Leave the target empty for the default '
           '(${SettingsProvider.defaultPingHost}).',
       fields: [
-        SenseiModalField(
+        SnapDarkModalField(
           label: 'Enable Ping Probe',
           isBool: true,
           initialBool: s.pingEnabled,
         ),
-        SenseiModalField(
+        SnapDarkModalField(
           label: 'Host or URL',
           hint: SettingsProvider.defaultPingHost,
           initialValue: s.pingHost,
         ),
-        SenseiModalField(
+        SnapDarkModalField(
           label: 'Probe over HTTPS',
           isBool: true,
           initialBool: s.pingHttps,
         ),
-        SenseiModalField(
+        SnapDarkModalField(
           label: 'Write ping to Logs',
           isBool: true,
           initialBool: s.pingLogging,
@@ -339,30 +339,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   /// Engine card: MTU + TLS fragmentation + mux in one dialog.
   Future<void> _editEngine(BuildContext context, SettingsProvider s) async {
-    final values = await SenseiModal.edit(
+    final values = await SnapDarkModal.edit(
       context,
       title: 'Engine Tunables',
       description: 'MTU 576–1500 (1500 default). TLS fragmentation splits the '
           'ClientHello to slip past inline DPI; mux reuses one connection for '
           'many streams.',
       fields: [
-        SenseiModalField(
+        SnapDarkModalField(
           label: 'MTU',
           hint: '1500',
           initialValue: '${s.mtu}',
           number: true,
         ),
-        SenseiModalField(
+        SnapDarkModalField(
           label: 'TLS Fragmentation',
           isBool: true,
           initialBool: s.tlsFragment,
         ),
-        SenseiModalField(
+        SnapDarkModalField(
           label: 'Connection Mux',
           isBool: true,
           initialBool: s.muxEnabled,
         ),
-        SenseiModalField(
+        SnapDarkModalField(
           label: 'OpenVPN: legacy ovpn3 engine',
           isBool: true,
           initialBool: s.ovpnUseOvpn3,
@@ -379,7 +379,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _editKeepAlive(BuildContext context, SettingsProvider s) async {
     final t = context.tokens;
-    final picked = await SenseiModal.sheet<int>(
+    final picked = await SnapDarkModal.sheet<int>(
       context,
       builder: (ctx) => Column(
         mainAxisSize: MainAxisSize.min,
@@ -393,13 +393,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
               fontWeight: FontWeight.w900,
             ),
           ),
-          const SizedBox(height: SenseiTokens.gapSm),
+          const SizedBox(height: SnapDarkTokens.gapSm),
           Text(
             'Use Aggressive only on phones where the tunnel dies while idle. '
             'Battery Saver sends fewer keepalive packets.',
             style: TextStyle(color: t.textSecondary, height: 1.35),
           ),
-          const SizedBox(height: SenseiTokens.gapMd),
+          const SizedBox(height: SnapDarkTokens.gapMd),
           for (final item in const [
             (0, 'Battery Saver', 'Lowest drain, weakest idle protection'),
             (1, 'Balanced', 'Recommended for most devices'),
@@ -439,13 +439,13 @@ class _SectionHeader extends StatelessWidget {
     final t = context.tokens;
     return Padding(
       padding: const EdgeInsets.only(
-        left: SenseiTokens.gapXs,
-        bottom: SenseiTokens.gapSm,
+        left: SnapDarkTokens.gapXs,
+        bottom: SnapDarkTokens.gapSm,
       ),
       child: Row(
         children: [
           Icon(icon, color: t.accent, size: 15),
-          const SizedBox(width: SenseiTokens.gapSm),
+          const SizedBox(width: SnapDarkTokens.gapSm),
           Expanded(
             child: Text(
               title.toUpperCase(),
@@ -492,13 +492,13 @@ class _SettingCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.tokens;
     final tint = t.accent;
-    return SenseiCard(
+    return SnapDarkCard(
       onTap: onTap,
       active: active,
-      radius: SenseiTokens.radiusMd,
+      radius: SnapDarkTokens.radiusMd,
       // Compact: content-sized card, no fixed heights anywhere — the row's
       // IntrinsicHeight keeps the two cards of a grid row equal.
-      padding: const EdgeInsets.all(SenseiTokens.gapSm + 2),
+      padding: const EdgeInsets.all(SnapDarkTokens.gapSm + 2),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -511,11 +511,11 @@ class _SettingCard extends StatelessWidget {
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: tint.withValues(alpha: 0.12),
-                  borderRadius: SenseiTokens.brSm,
+                  borderRadius: SnapDarkTokens.brSm,
                 ),
                 child: Icon(icon, color: tint, size: 15),
               ),
-              const SizedBox(width: SenseiTokens.gapSm),
+              const SizedBox(width: SnapDarkTokens.gapSm),
               Expanded(
                 child: Text(
                   title,
@@ -599,7 +599,7 @@ class _ThemeSegmented extends StatelessWidget {
             onTap: () => onChanged(target),
             borderRadius: BorderRadius.circular(999),
             child: AnimatedContainer(
-              duration: SenseiTokens.fast,
+              duration: SnapDarkTokens.fast,
               curve: Curves.easeOut,
               width: 30,
               height: 26,
@@ -622,7 +622,7 @@ class _ThemeSegmented extends StatelessWidget {
       padding: const EdgeInsets.all(2.5),
       decoration: BoxDecoration(
         color: t.surfaceAltFill,
-        borderRadius: SenseiTokens.brPill,
+        borderRadius: SnapDarkTokens.brPill,
         border: Border.all(color: t.border),
       ),
       child: Row(
@@ -666,14 +666,14 @@ class _CardGrid extends StatelessWidget {
             children: [
               Expanded(child: children[i]),
               if (hasPair) ...[
-                const SizedBox(width: SenseiTokens.gapSm),
+                const SizedBox(width: SnapDarkTokens.gapSm),
                 Expanded(child: children[i + 1]),
               ],
             ],
           ),
         ),
       );
-      if (!isLastRow) rows.add(const SizedBox(height: SenseiTokens.gapSm));
+      if (!isLastRow) rows.add(const SizedBox(height: SnapDarkTokens.gapSm));
     }
     return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch, children: rows);
@@ -700,14 +700,14 @@ class _ShareBox extends StatelessWidget {
     final t = context.tokens;
     return Material(
       color: t.surfaceAltFill,
-      borderRadius: SenseiTokens.brMd,
+      borderRadius: SnapDarkTokens.brMd,
       child: InkWell(
         onTap: onTap,
-        borderRadius: SenseiTokens.brMd,
+        borderRadius: SnapDarkTokens.brMd,
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: SenseiTokens.gap),
+          padding: const EdgeInsets.symmetric(vertical: SnapDarkTokens.gap),
           decoration: BoxDecoration(
-            borderRadius: SenseiTokens.brMd,
+            borderRadius: SnapDarkTokens.brMd,
             border: Border.all(color: t.border),
           ),
           child: Column(
@@ -737,7 +737,7 @@ class _ShareBox extends StatelessWidget {
 /// Wallpaper Mode configuration: a standard bottom sheet with live preview.
 ///
 /// Layout: live preview first (the actual candidate image behind sample
-/// Sensei cards, with the dim/blur sliders applied in real time), source
+/// SnapDark cards, with the dim/blur sliders applied in real time), source
 /// boxes under it (Admin / Gallery), the tuning sliders, then
 /// Remove + Apply. "Apply" is what writes the wallpaper + look to the
 /// provider — the app background changes exactly then, never before.
@@ -937,7 +937,7 @@ class _WallpaperConfigSheetState extends State<_WallpaperConfigSheet> {
     // BOTH themes), then sample cards at the card opacity — what you see
     // here IS the app background.
     return ClipRRect(
-      borderRadius: SenseiTokens.brLg,
+      borderRadius: SnapDarkTokens.brLg,
       child: SizedBox(
         width: width,
         height: height,
@@ -952,7 +952,7 @@ class _WallpaperConfigSheetState extends State<_WallpaperConfigSheet> {
               ),
             ColoredBox(color: Colors.black.withValues(alpha: _dim)),
             Padding(
-              padding: const EdgeInsets.all(SenseiTokens.gap),
+              padding: const EdgeInsets.all(SnapDarkTokens.gap),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.end,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -960,15 +960,15 @@ class _WallpaperConfigSheetState extends State<_WallpaperConfigSheet> {
                   if (_previewCaption.isNotEmpty)
                     Padding(
                       padding:
-                          const EdgeInsets.only(bottom: SenseiTokens.gapSm),
+                          const EdgeInsets.only(bottom: SnapDarkTokens.gapSm),
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: SenseiTokens.gapMd,
+                          horizontal: SnapDarkTokens.gapMd,
                           vertical: 5,
                         ),
                         decoration: BoxDecoration(
                           color: Colors.black.withValues(alpha: 0.45),
-                          borderRadius: SenseiTokens.brPill,
+                          borderRadius: SnapDarkTokens.brPill,
                         ),
                         child: Text(
                           _previewCaption,
@@ -985,10 +985,10 @@ class _WallpaperConfigSheetState extends State<_WallpaperConfigSheet> {
                   Opacity(
                     opacity: _cardOpacity.clamp(0.0, 1.0),
                     child: Container(
-                      padding: const EdgeInsets.all(SenseiTokens.gapMd),
+                      padding: const EdgeInsets.all(SnapDarkTokens.gapMd),
                       decoration: BoxDecoration(
                         color: t.surface,
-                        borderRadius: SenseiTokens.brMd,
+                        borderRadius: SnapDarkTokens.brMd,
                         border: Border.all(color: t.accent.withValues(alpha: 0.4)),
                       ),
                       child: Row(
@@ -998,12 +998,12 @@ class _WallpaperConfigSheetState extends State<_WallpaperConfigSheet> {
                             height: 34,
                             decoration: BoxDecoration(
                               color: t.accentWash,
-                              borderRadius: SenseiTokens.brSm,
+                              borderRadius: SnapDarkTokens.brSm,
                             ),
                             child: Icon(Icons.shield_rounded,
                                 color: t.accent, size: 18),
                           ),
-                          const SizedBox(width: SenseiTokens.gapSm),
+                          const SizedBox(width: SnapDarkTokens.gapSm),
                           Expanded(
                             child: Text(
                               'Sample tunnel card',
@@ -1050,7 +1050,7 @@ class _WallpaperConfigSheetState extends State<_WallpaperConfigSheet> {
         Row(
           children: [
             Icon(icon, color: t.accent, size: 18),
-            const SizedBox(width: SenseiTokens.gapSm),
+            const SizedBox(width: SnapDarkTokens.gapSm),
             Text(label, style: TextStyle(color: t.text, fontSize: 12.5)),
             Expanded(
               child: Slider(
@@ -1077,7 +1077,7 @@ class _WallpaperConfigSheetState extends State<_WallpaperConfigSheet> {
         Row(
           children: [
             Icon(Icons.wallpaper_rounded, color: t.accent, size: 22),
-            const SizedBox(width: SenseiTokens.gapSm),
+            const SizedBox(width: SnapDarkTokens.gapSm),
             Text(
               'Wallpaper Mode',
               style: Theme.of(context).textTheme.titleMedium,
@@ -1090,7 +1090,7 @@ class _WallpaperConfigSheetState extends State<_WallpaperConfigSheet> {
           ],
         ),
         if (widget.settings.wallpaperPath.isNotEmpty) ...[
-          const SizedBox(height: SenseiTokens.gapXs),
+          const SizedBox(height: SnapDarkTokens.gapXs),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
             value: widget.settings.wallpaperEnabled,
@@ -1107,13 +1107,13 @@ class _WallpaperConfigSheetState extends State<_WallpaperConfigSheet> {
             ),
           ),
         ],
-        const SizedBox(height: SenseiTokens.gapSm),
-        _preview(width - (SenseiTokens.gapLg * 2)),
+        const SizedBox(height: SnapDarkTokens.gapSm),
+        _preview(width - (SnapDarkTokens.gapLg * 2)),
         if (_error != null) ...[
-          const SizedBox(height: SenseiTokens.gapSm),
+          const SizedBox(height: SnapDarkTokens.gapSm),
           Text(_error!, style: TextStyle(color: t.alert, fontSize: 12)),
         ],
-        const SizedBox(height: SenseiTokens.gapMd),
+        const SizedBox(height: SnapDarkTokens.gapMd),
         Row(
           children: [
             Expanded(
@@ -1123,7 +1123,7 @@ class _WallpaperConfigSheetState extends State<_WallpaperConfigSheet> {
                 _WallpaperSource.admin,
               ),
             ),
-            const SizedBox(width: SenseiTokens.gapSm),
+            const SizedBox(width: SnapDarkTokens.gapSm),
             Expanded(
               child: box(
                 Icons.photo_library_outlined,
@@ -1134,7 +1134,7 @@ class _WallpaperConfigSheetState extends State<_WallpaperConfigSheet> {
           ],
         ),
         if (_adminEntries.isNotEmpty) ...[
-          const SizedBox(height: SenseiTokens.gapSm),
+          const SizedBox(height: SnapDarkTokens.gapSm),
           DropdownButtonFormField<int>(
             // (`initialValue` would not re-sync when the async admin-wallpaper
             // list first arrives, so `value` keeps the correct behavior.)
@@ -1144,11 +1144,11 @@ class _WallpaperConfigSheetState extends State<_WallpaperConfigSheet> {
             decoration: InputDecoration(
               labelText: 'Admin wallpapers',
               contentPadding: const EdgeInsets.symmetric(
-                horizontal: SenseiTokens.gapMd,
+                horizontal: SnapDarkTokens.gapMd,
                 vertical: 9,
               ),
               border: OutlineInputBorder(
-                borderRadius: SenseiTokens.brMd,
+                borderRadius: SnapDarkTokens.brMd,
               ),
             ),
             items: [
@@ -1169,7 +1169,7 @@ class _WallpaperConfigSheetState extends State<_WallpaperConfigSheet> {
                   },
           ),
         ],
-        const SizedBox(height: SenseiTokens.gapMd),
+        const SizedBox(height: SnapDarkTokens.gapMd),
         slider(
           icon: Icons.dark_mode_outlined,
           label: 'Dim',
@@ -1191,7 +1191,7 @@ class _WallpaperConfigSheetState extends State<_WallpaperConfigSheet> {
           max: 1,
           onChanged: (v) => setState(() => _cardOpacity = v),
         ),
-        const SizedBox(height: SenseiTokens.gapMd),
+        const SizedBox(height: SnapDarkTokens.gapMd),
         Row(
           children: [
             if (widget.settings.hasWallpaper || _previewBytes != null)
@@ -1212,7 +1212,7 @@ class _WallpaperConfigSheetState extends State<_WallpaperConfigSheet> {
                 ),
               ),
             if (widget.settings.hasWallpaper || _previewBytes != null)
-              const SizedBox(width: SenseiTokens.gapSm),
+              const SizedBox(width: SnapDarkTokens.gapSm),
             Expanded(
               child: ElevatedButton.icon(
                 onPressed: _busy ? null : _apply,

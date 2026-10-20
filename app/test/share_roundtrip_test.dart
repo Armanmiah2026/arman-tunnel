@@ -1,9 +1,9 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:sensei_tunnel/models/server_config.dart';
-import 'package:sensei_tunnel/services/config_service.dart';
-import 'package:sensei_tunnel/services/vpn_service.dart';
+import 'package:snapdark_tunnel/models/server_config.dart';
+import 'package:snapdark_tunnel/services/config_service.dart';
+import 'package:snapdark_tunnel/services/vpn_service.dart';
 
 void main() {
   test('official-backed custom placeholder does not persist official secrets', () {
@@ -201,7 +201,7 @@ void main() {
     expect(back.port, 443);
   });
 
-  test('v48 share envelope is hidden behind one opaque senseitunnel URI', () {
+  test('v48 share envelope is hidden behind one opaque snapdarktunnel URI', () {
     const native = 'armantunnel://base64/48/lock/header.body';
     final public = VpnService.wrapShareEnvelope(native);
     expect(public.startsWith('armantunnel://'), isTrue);

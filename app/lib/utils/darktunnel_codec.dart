@@ -35,7 +35,7 @@ import 'dart:typed_data';
 /// The keys are not secrets — they ship inside every DarkTunnel APK; the
 /// format only obfuscates. Same for this port: it exists so locked `.dark`
 /// files (the standard share format of the DarkTunnel ecosystem) import
-/// losslessly into Arman Tunnel, and so Sensei configs can be shared back
+/// losslessly into SnapDark Tunnel, and so SnapDark configs can be shared back
 /// out as locked `.dark` files.
 
 // ─────────────────────────────── SHA-256 ───────────────────────────────

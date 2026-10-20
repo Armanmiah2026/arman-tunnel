@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../services/error_capture_service.dart';
-import '../theme/sensei_theme.dart';
+import '../theme/snapdark_theme.dart';
 import '../widgets/app_toast.dart';
-import '../widgets/ui/sensei_controls.dart';
+import '../widgets/ui/snapdark_controls.dart';
 
 /// Reads [ErrorCapture]'s in-memory buffer plus the persisted log file, so
 /// runtime errors can be inspected directly on the phone without adb.
@@ -52,7 +52,7 @@ class _FlutterErrorLogScreenState extends State<FlutterErrorLogScreen> {
             icon: const Icon(Icons.delete_outline_rounded),
             onPressed: _clear,
           ),
-          const SizedBox(width: SenseiTokens.gapXs),
+          const SizedBox(width: SnapDarkTokens.gapXs),
         ],
       ),
       body: DecoratedBox(
@@ -68,7 +68,7 @@ class _FlutterErrorLogScreenState extends State<FlutterErrorLogScreen> {
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(
-                maxWidth: SenseiTokens.maxContentWidth,
+                maxWidth: SnapDarkTokens.maxContentWidth,
               ),
               child: ValueListenableBuilder<int>(
                 valueListenable: ErrorCapture.instance.revision,
@@ -82,7 +82,7 @@ class _FlutterErrorLogScreenState extends State<FlutterErrorLogScreen> {
                     }
                     final text = (snap.data ?? '').trim();
                     if (text.isEmpty) {
-                      return const SenseiEmptyState(
+                      return const SnapDarkEmptyState(
                         icon: Icons.verified_rounded,
                         title: 'No errors captured',
                         message: 'Uncaught Dart exceptions and zone errors would '
@@ -101,17 +101,17 @@ class _FlutterErrorLogScreenState extends State<FlutterErrorLogScreen> {
                         .toList();
                     return ListView.separated(
                       padding: const EdgeInsets.fromLTRB(
-                        SenseiTokens.pageInset,
-                        SenseiTokens.gapMd,
-                        SenseiTokens.pageInset,
-                        SenseiTokens.gapXxl,
+                        SnapDarkTokens.pageInset,
+                        SnapDarkTokens.gapMd,
+                        SnapDarkTokens.pageInset,
+                        SnapDarkTokens.gapXxl,
                       ),
                       itemCount: blocks.length,
                       separatorBuilder: (_, __) =>
-                          const SizedBox(height: SenseiTokens.gapSm),
-                      itemBuilder: (_, i) => SenseiCard(
-                        radius: SenseiTokens.radiusMd,
-                        padding: const EdgeInsets.all(SenseiTokens.gapMd),
+                          const SizedBox(height: SnapDarkTokens.gapSm),
+                      itemBuilder: (_, i) => SnapDarkCard(
+                        radius: SnapDarkTokens.radiusMd,
+                        padding: const EdgeInsets.all(SnapDarkTokens.gapMd),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -129,7 +129,7 @@ class _FlutterErrorLogScreenState extends State<FlutterErrorLogScreen> {
                                 ),
                               ],
                             ),
-                            const SizedBox(height: SenseiTokens.gapSm),
+                            const SizedBox(height: SnapDarkTokens.gapSm),
                             SelectableText(
                               blocks[i],
                               style: t.mono(

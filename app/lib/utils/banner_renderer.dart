@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../theme/sensei_tokens.dart';
+import '../theme/snapdark_tokens.dart';
 
 class _HtmlStyle {
   const _HtmlStyle({
@@ -39,7 +39,7 @@ const double _amberHue = 34;
 /// visibly a warning (amber), everything else lands on violet or lavender. The
 /// lightness window follows the active palette so banners stay readable on a
 /// white background too.
-Color _brandSafe(Color color, SenseiTokens t) {
+Color _brandSafe(Color color, SnapDarkTokens t) {
   final hsl = HSLColor.fromColor(color);
   // Greys and near-whites carry no hue; leave them alone.
   if (hsl.saturation < 0.12) return color;
@@ -62,7 +62,7 @@ Color _brandSafe(Color color, SenseiTokens t) {
       .toColor();
 }
 
-Color? _parseColor(String value, SenseiTokens t) {
+Color? _parseColor(String value, SnapDarkTokens t) {
   final v = value.trim().toLowerCase().replaceAll(RegExp("[\"']"), '');
   // Named colours are mapped straight onto the brand ramp so the common cases
   // are exact rather than approximated.
@@ -135,12 +135,12 @@ Map<String, String> _attrs(String tag) {
   return out;
 }
 
-Color? _styleColor(String style, SenseiTokens t) {
+Color? _styleColor(String style, SnapDarkTokens t) {
   final m = RegExp(r'color\s*:\s*([^;]+)', caseSensitive: false).firstMatch(style);
   return m == null ? null : _parseColor(m.group(1)!, t);
 }
 
-TextSpan _span(String text, _HtmlStyle style, TextStyle base, SenseiTokens t) {
+TextSpan _span(String text, _HtmlStyle style, TextStyle base, SnapDarkTokens t) {
   return TextSpan(
     text: text,
     style: base.copyWith(
@@ -186,7 +186,7 @@ class _Parsed {
 /// `<u>`, `<p align>`, `<center>` and `<br>` without pulling in a WebView.
 _Parsed _parse(
   String raw,
-  SenseiTokens t,
+  SnapDarkTokens t,
   TextStyle base,
   TextAlign defaultAlign,
 ) {
