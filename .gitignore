@@ -25,3 +25,9 @@ app/.flutter-plugins-dependencies
 # OS noise
 .DS_Store
 configs-seed/
+
+# Debug screenshots of the admin panel / app — they leak live server hosts
+# and panel internals, so they never belong in a public repo.
+dbg-*.png
+panel-*.png
+v-*.png
