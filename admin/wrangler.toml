@@ -3,9 +3,8 @@ main = "src/index.js"
 compatibility_date = "2024-01-01"
 # Cloudflare account (Armanmiah2026 — from `wrangler whoami`).
 account_id = "61702a82c3331333a903b050089e103d"
-# Custom domain (active zone cloudv2roy.xyz). Without it the Worker answers on
-# <worker-name>.<your-subdomain>.workers.dev — fine for testing.
-routes = [{ pattern = "admin.cloudv2roy.xyz", custom_domain = true }]
+# Custom domain (apex: cloudv2roy.xyz — admin panel served directly on the root).
+routes = [{ pattern = "cloudv2roy.xyz", custom_domain = true }]
 
 # SENSEI_KV holds admins/devices/logs (binding name kept from the original
 # architecture — the code reads env.SENSEI_KV). Created with
