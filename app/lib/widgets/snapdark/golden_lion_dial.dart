@@ -76,9 +76,9 @@ class GoldenLionSceneState extends State<GoldenLionScene>
   }
 
   @override
-  void didUpdateWidget(covariant GoldenLionScene old) {
-    super.didUpdateWidget(old);
-    if (widget.isConnected && !old.isConnected) {
+  void didUpdateWidget(covariant GoldenLionScene oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isConnected && !oldWidget.isConnected) {
       // THE moment: tunnel came up → the lion plants its feet and roars.
       _companionFade = 0;
       _roar.forward(from: 0);
@@ -222,7 +222,7 @@ class _ScenePainter extends CustomPainter {
     // Center the 100-unit art box; layers may bleed a couple of units.
     canvas.translate((size.width - 100 * u) / 2, (size.height - 100 * u) / 2);
     canvas.scale(u);
-    canvas.clipRect(Rect.fromLTWH(-2, -2, 104, 104));
+    canvas.clipRect(const Rect.fromLTWH(-2, -2, 104, 104));
 
     _sky(canvas);
     _hills(canvas);
@@ -274,7 +274,7 @@ class _ScenePainter extends CustomPainter {
   }
 
   void _sky(Canvas c) {
-    final rect = Rect.fromLTWH(-4, -4, 112, 112);
+    const rect = Rect.fromLTWH(-4, -4, 112, 112);
     c.drawRect(
       rect,
       Paint()
@@ -291,7 +291,7 @@ class _ScenePainter extends CustomPainter {
         ).createShader(rect),
     );
     // Low golden sun haze behind the treeline.
-    final sun = Rect.fromCircle(const Offset(64, 50), 30);
+    final sun = Rect.fromCircle(center: const Offset(64, 50), radius: 30);
     c.drawRect(
       sun,
       Paint()
@@ -375,7 +375,8 @@ class _ScenePainter extends CustomPainter {
   }
 
   void _glow(Canvas c) {
-    final r = Rect.fromCircle(const Offset(_lionX + 2, _groundY - 12), 44);
+    final r =
+        Rect.fromCircle(center: const Offset(_lionX + 2, _groundY - 12), radius: 44);
     c.drawRect(
       r,
       Paint()
@@ -397,8 +398,8 @@ class _ScenePainter extends CustomPainter {
         end: Alignment.bottomCenter,
         colors: [Color(0xFF8A5A16), Color(0xFF5B340C), Color(0xFF3A2108)],
         stops: [0, .55, 1],
-      ).createShader(Rect.fromLTWH(-4, _pathTop, 112, 108 - _pathTop));
-    c.drawRect(Rect.fromLTWH(-4, _pathTop, 112, 108 - _pathTop), ground);
+      ).createShader(const Rect.fromLTWH(-4, _pathTop, 112, 108 - _pathTop));
+    c.drawRect(const Rect.fromLTWH(-4, _pathTop, 112, 108 - _pathTop), ground);
     // Glowing rim where the path meets the jungle.
     c.drawLine(
       const Offset(-4, _pathTop),
@@ -464,7 +465,7 @@ class _ScenePainter extends CustomPainter {
       final hs = _hash(i * 3 + 3);
       final x = (((hx * 110) - scroll * 3) % 110 + 110) % 110 - 5;
       final y = 24 + hy * 44 + math.sin(time * 1.6 + i) * 2.2;
-      final a = (0.30 + 0.5 * math.abs(math.sin(time * 2 + i * 1.7))) *
+      final a = (0.30 + 0.5 * (math.sin(time * 2 + i * 1.7)).abs()) *
           (0.5 + hs * 0.5);
       c.drawCircle(
         Offset(x, y),
@@ -475,15 +476,15 @@ class _ScenePainter extends CustomPainter {
   }
 
   void _vignette(Canvas c) {
-    final rect = Rect.fromLTWH(-4, -4, 112, 112);
+    const rect = Rect.fromLTWH(-4, -4, 112, 112);
     c.drawRect(
       rect,
       Paint()
-        ..shader = RadialGradient(
-          center: const Alignment(0.08, 0),
+        ..shader = const RadialGradient(
+          center: Alignment(0.08, 0),
           radius: .78,
-          colors: [Colors.transparent, const Color(0x66000000)],
-          stops: const [.55, 1],
+          colors: [Colors.transparent, Color(0x66000000)],
+          stops: [.55, 1],
         ).createShader(rect),
     );
   }
@@ -496,7 +497,7 @@ class _ScenePainter extends CustomPainter {
     c.translate(_lionX, _groundY);
     final gait = scroll * 2.25;
     final stance = headRaise; // 1 = planted for the roar
-    final bobY = -math.abs(math.sin(gait * math.pi * 2)) * 1.2 * (1 - stance * .8);
+    final bobY = -(math.sin(gait * math.pi * 2)).abs() * 1.2 * (1 - stance * .8);
     c.translate(0, bobY);
 
     // Contact shadow.
@@ -508,7 +509,7 @@ class _ScenePainter extends CustomPainter {
     // Soft golden aura (blurred silhouette pass — cheap fake glow).
     final glow = Paint()
       ..color = LionGold.core.withValues(alpha: .5)
-      ..maskFilter = MaskFilter.blur(BlurStyle.normal, 2.6);
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2.6);
     c.drawCircle(const Offset(-1, -12), 9.5, glow);
     c.drawCircle(const Offset(6.5, -12.5), 5.6, glow);
     c.drawCircle(const Offset(-8, -12), 5.8, glow);
@@ -563,7 +564,7 @@ class _ScenePainter extends CustomPainter {
         end: Alignment.bottomCenter,
         colors: [LionGold.bright, LionGold.core, LionGold.deep],
         stops: [0, .55, 1],
-      ).createShader(Rect.fromLTWH(-14, -19, 26, 14));
+      ).createShader(const Rect.fromLTWH(-14, -19, 26, 14));
     void blob(Offset o, double r) => c.drawOval(
           Rect.fromCenter(center: o, width: r * 2, height: r * 1.86),
           bodyPaint,
@@ -762,7 +763,7 @@ class _ScenePainter extends CustomPainter {
     );
 
     c.save();
-    c.translate(0, -math.abs(math.sin(gait * math.pi * 2)) * bob);
+    c.translate(0, -(math.sin(gait * math.pi * 2)).abs() * bob);
 
     // Contact shadow.
     c.drawOval(
@@ -775,7 +776,7 @@ class _ScenePainter extends CustomPainter {
       bodyRect,
       Paint()
         ..color = fill.withValues(alpha: .38 * alpha)
-        ..maskFilter = MaskFilter.blur(BlurStyle.normal, 2.2),
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2.2),
     );
 
     final body = Paint()
@@ -869,8 +870,8 @@ class _ScenePainter extends CustomPainter {
         final a0 = headC + Offset(s * headR * .35, -headR * .85);
         final a1 = a0 + Offset(s * 1.6, -3.2);
         c.drawLine(a0, a1, ap);
-        c.drawLine(a1 + Offset(0, 1.4), a1 + Offset(s * 1.9, .5), ap);
-        c.drawLine(a1 + Offset(0, 2.4), a1 + Offset(-s * .1, 1.9), ap);
+        c.drawLine(a1 + const Offset(0, 1.4), a1 + Offset(s * 1.9, .5), ap);
+        c.drawLine(a1 + const Offset(0, 2.4), a1 + Offset(-s * .1, 1.9), ap);
       }
     }
 
@@ -927,7 +928,7 @@ class _ScenePainter extends CustomPainter {
 
   void _flash(Canvas c) {
     final r = Rect.fromCircle(
-        const Offset(_lionX, _groundY - 12), 8 + flash * 30);
+        center: const Offset(_lionX, _groundY - 12), radius: 8 + flash * 30);
     c.drawRect(
       r,
       Paint()

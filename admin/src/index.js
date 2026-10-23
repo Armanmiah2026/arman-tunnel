@@ -2698,7 +2698,10 @@ async function serveAssets(env, request) {
   }
   if (path === '/') {
     // Owner opens the apex domain → bounce straight to the panel.
-    return Response.redirect(ADMIN_BASE + '/', 302);
+    // NOTE: Response.redirect() requires an ABSOLUTE URL — a relative path
+    // throws TypeError (→ 500 via the top-level handler). url.origin rebuilds
+    // it from the incoming request, so any custom domain works.
+    return Response.redirect(url.origin + ADMIN_BASE + '/', 302);
   }
   if (!path.startsWith(ADMIN_BASE + '/')) {
     // Everything outside the gated path is a dead end for visitors. If you
