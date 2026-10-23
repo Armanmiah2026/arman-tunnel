@@ -3,7 +3,9 @@ main = "src/index.js"
 compatibility_date = "2024-01-01"
 # Cloudflare account (Armanmiah2026 — from `wrangler whoami`).
 account_id = "61702a82c3331333a903b050089e103d"
-# Custom domain (apex: cloudv2roy.xyz — admin panel served directly on the root).
+# Custom domain (apex: cloudv2roy.xyz). The root "/" 302-redirects to the
+# gated panel path /Arman-tunnel/admin/ — open the bare domain and you land
+# on the login page.
 routes = [{ pattern = "cloudv2roy.xyz", custom_domain = true }]
 
 # SENSEI_KV holds admins/devices/logs (binding name kept from the original
@@ -19,8 +21,8 @@ id = "77056b1a8d354494b3eae4b7aeab687b"
 # run_worker_first = true is REQUIRED for the /Arman-tunnel/admin gate: without
 # it Cloudflare's asset server answers first and `not_found_handling =
 # "single-page-application"` makes EVERY unmatched path (including "/") return
-# the panel's index.html, so serveAssets()'s 404 branch is unreachable and the
-# panel stays exposed at the origin root.
+# the panel's index.html, so serveAssets()'s root-redirect / 404 branches are
+# unreachable and the gate stops working.
 [assets]
 directory = "./ui/dist"
 binding = "ASSETS"

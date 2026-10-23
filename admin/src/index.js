@@ -2679,10 +2679,11 @@ async function exportConfigs(env) {
 // ---------------------------------------------------------------------------
 
 /**
- * Admin UI path gate. The React panel is served ONLY under /Arman-tunnel/admin
- * (a "web-based patch" identity: the same worker that powers /api/* no longer
- * exposes the login page at the bare domain root — a probe that fetches
- * the bare origin root gets a clean 404 instead of the panel).
+ * Admin UI path gate. The React panel is served under /Arman-tunnel/admin.
+ * The bare domain root ("/") 302-redirects there so opening the apex domain
+ * (cloudv2roy.xyz) lands on the panel instead of a dead 404 — the panel is
+ * login-gated anyway, so nothing is exposed by the bounce. Every OTHER path
+ * outside the gate keeps the clean 404 (probes of random paths learn nothing).
  * /api/* keeps working for the app exactly as before.
  */
 const ADMIN_BASE = '/Arman-tunnel/admin';
@@ -2694,6 +2695,10 @@ async function serveAssets(env, request) {
   if (path === ADMIN_BASE) {
     url.pathname = ADMIN_BASE + '/';
     return serveAssets(env, new Request(url.href, request));
+  }
+  if (path === '/') {
+    // Owner opens the apex domain → bounce straight to the panel.
+    return Response.redirect(ADMIN_BASE + '/', 302);
   }
   if (!path.startsWith(ADMIN_BASE + '/')) {
     // Everything outside the gated path is a dead end for visitors. If you

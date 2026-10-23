@@ -1,5 +1,5 @@
 # Deploys the SnapDark Tunnel admin panel: Worker + React static assets +
-# custom domain admin.cloudv2roy.xyz (routes live in wrangler.toml).
+# custom domain on the apex cloudv2roy.xyz (routes live in wrangler.toml).
 #
 # Runs on any push touching admin/ — CI has the fast network that pulls
 # wrangler reliably, so no local toolchain is needed anywhere.
@@ -75,10 +75,21 @@ jobs:
       - name: Smoke test the live panel
         run: |
           sleep 8
+          # NOTE: the custom domain is the APEX (cloudv2roy.xyz). The old
+          # admin.cloudv2roy.xyz name no longer resolves — do not use it here.
+          BASE=https://cloudv2roy.xyz
           echo "--- /api/backend (public branding, must NOT contain secrets) ---"
-          curl -fsS https://admin.cloudv2roy.xyz/api/backend
+          curl -fsS "$BASE/api/backend"
           echo
           echo "--- panel gate ---"
-          echo "panel HTTP $(curl -s -o /dev/null -w '%{http_code}' https://admin.cloudv2roy.xyz/Arman-tunnel/admin)"
-          echo "--- origin root (must NOT expose the panel) ---"
-          echo "root   HTTP $(curl -s -o /dev/null -w '%{http_code}' https://admin.cloudv2roy.xyz/)"
+          panel=$(curl -s -o /dev/null -w '%{http_code}' "$BASE/Arman-tunnel/admin")
+          echo "panel HTTP $panel"
+          test "$panel" = "200"
+          echo "--- origin root (must 302 to the panel, never 404) ---"
+          root=$(curl -s -o /dev/null -w '%{http_code} %{redirect_url}' "$BASE/")
+          echo "root   $root"
+          test "${root%% *}" = "302"
+          case "$root" in
+            *"/Arman-tunnel/admin/"*) ;;
+            *) echo "root did not redirect to the panel"; exit 1 ;;
+          esac
