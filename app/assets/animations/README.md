@@ -1,13 +1,21 @@
-# 3D golden lion background video
+# Home-screen background animation
 
-Drop the full-screen background loop here as:
+`3d_golden_lion.mp4` is the full-screen looping background of the home
+dashboard (`GoldenLionBackground` renders it through `video_player`,
+`FittedBox(BoxFit.cover)`, muted and looping).
 
-    3d_golden_lion.mp4
+## Shipped clip (current)
 
-Requirements: H.264/H.265 MP4, portrait or landscape (the widget cover-fits
-it to every screen), audio track NOT needed (the player is hard-muted), a
-seamless loop is best (the player also auto-loops).
+- Source: https://www.pexels.com/video/majestic-lion-walking-in-african-savannah-31150342
+- License: Pexels License (free for commercial use, no attribution required)
+- Processing: trimmed the first 1.5s, cross-faded the tail into the head so the
+  walk cycle loops seamlessly, audio stripped, H.264 high profile, yuv420p,
+  1080x1920 @ 30fps, ~11.7s, ~3.6 MB.
 
-Until the file exists — or if a device cannot decode it — the app renders a
-painterly golden-jungle fallback, so the build never breaks and the screen
-always looks intentional.
+## Swapping in your own clip
+
+Overwrite `3d_golden_lion.mp4` with any H.264 MP4 (ideally portrait, e.g.
+1080x1920, ≤ ~5 MB, muted — the widget hard-mutes volume anyway). Keep the
+same file name; nothing else needs to change. If the file is missing or the
+platform cannot decode it, the app automatically falls back to the painterly
+golden-jungle layer, so the screen never looks broken.
