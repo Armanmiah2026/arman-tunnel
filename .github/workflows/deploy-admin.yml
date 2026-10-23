@@ -93,3 +93,14 @@ jobs:
             *"/Arman-tunnel/admin/"*) ;;
             *) echo "root did not redirect to the panel"; exit 1 ;;
           esac
+          # The legacy admin subdomain must open too (it is also routed to
+          # this Worker). DNS records created by wrangler can take a little
+          # to propagate — retry before failing.
+          echo "--- legacy admin.cloudv2roy.xyz ---"
+          for i in 1 2 3 4 5; do
+            legacy=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 "https://admin.cloudv2roy.xyz/Arman-tunnel/admin" || echo 000)
+            echo "try $i: panel HTTP $legacy"
+            test "$legacy" = "200" && break
+            sleep 6
+          done
+          test "$legacy" = "200"

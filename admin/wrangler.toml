@@ -3,10 +3,13 @@ main = "src/index.js"
 compatibility_date = "2024-01-01"
 # Cloudflare account (Armanmiah2026 — from `wrangler whoami`).
 account_id = "61702a82c3331333a903b050089e103d"
-# Custom domain (apex: cloudv2roy.xyz). The root "/" 302-redirects to the
-# gated panel path /Arman-tunnel/admin/ — open the bare domain and you land
-# on the login page.
-routes = [{ pattern = "cloudv2roy.xyz", custom_domain = true }]
+# Custom domains (apex + the old admin subdomain, so BOTH
+# https://cloudv2roy.xyz/ and https://admin.cloudv2roy.xyz/ open the panel).
+# The root of each 302-redirects to the gated panel path /Arman-tunnel/admin/.
+routes = [
+  { pattern = "cloudv2roy.xyz", custom_domain = true },
+  { pattern = "admin.cloudv2roy.xyz", custom_domain = true },
+]
 
 # SENSEI_KV holds admins/devices/logs (binding name kept from the original
 # architecture — the code reads env.SENSEI_KV). Created with
