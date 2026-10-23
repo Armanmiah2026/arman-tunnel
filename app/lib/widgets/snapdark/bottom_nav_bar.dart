@@ -56,9 +56,14 @@ class SnapDarkBottomNavBar extends StatelessWidget {
                     maxWidth: SnapDarkTokens.maxContentWidth),
                 padding: EdgeInsets.all(6 * s),
                 decoration: BoxDecoration(
-                  color: t.surfaceFill,
+                  // Glass pill: a touch of translucency + a thin golden
+                  // hairline ties the bar to the golden-lion home theme.
+                  color: t.isDark
+                      ? Color.alphaBlend(
+                          t.surfaceFill, const Color(0x59000000))
+                      : t.surfaceFill,
                   borderRadius: SnapDarkTokens.brPill,
-                  border: Border.all(color: t.border),
+                  border: Border.all(color: const Color(0x33E8C36A)),
                   boxShadow: [
                     // Shadow keeps the pill readable over ANY wallpaper in
                     // both themes: dark uses a deeper drop, light a soft one.

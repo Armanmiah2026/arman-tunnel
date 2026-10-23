@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../theme/snapdark_theme.dart';
+import '../snapdark/golden_lion_background.dart';
 
 /// Bordered panel used for every grouped block in the app.
 class SnapDarkCard extends StatelessWidget {
@@ -30,6 +31,12 @@ class SnapDarkCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.tokens;
     final br = BorderRadius.circular(radius);
+    // Over the full-screen golden-lion backdrop (home dashboard) every card
+    // turns to glass: a faint white wash with a golden hairline, so the 3D
+    // lion keeps shining through the panels while text keeps its contrast.
+    // Everywhere else the card keeps its exact theme fill — nothing else in
+    // the app changes.
+    final lion = GoldenLionScope.of(context);
     // Active fill: the accent wash composited ON the card surface, not IN
     // PLACE of it. Painting the wash alone (the old way) made active cards
     // read as a dark tint slab in glass mode — on light glass the wash's
@@ -44,17 +51,34 @@ class SnapDarkCard extends StatelessWidget {
       duration: SnapDarkTokens.fast,
       padding: padding,
       decoration: BoxDecoration(
-        color: hero ? null : (active ? fill : t.surfaceFill),
+        color: hero
+            ? null
+            : active
+                ? fill
+                : lion
+                    // white @ 12% — the glassmorphism fill from the brief.
+                    ? Colors.white.withValues(alpha: 0.12)
+                    : t.surfaceFill,
         gradient: hero
             ? LinearGradient(
-                colors: t.heroGradient,
+                colors: lion
+                    ? [
+                        Colors.white.withValues(alpha: 0.16),
+                        Colors.white.withValues(alpha: 0.07),
+                      ]
+                    : t.heroGradient,
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               )
             : null,
         borderRadius: br,
         border: Border.all(
-          color: active ? t.accent : t.border,
+          color: active
+              ? t.accent
+              : lion
+                  // Thin golden border around every glass panel.
+                  ? const Color(0x59E8C36A)
+                  : t.border,
           width: active ? 1.4 : 1,
         ),
       ),

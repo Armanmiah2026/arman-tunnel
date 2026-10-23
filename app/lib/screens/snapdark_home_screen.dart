@@ -24,6 +24,7 @@ import '../widgets/app_toast.dart';
 import '../widgets/app_update_sheet.dart';
 import '../widgets/snapdark/connection_area.dart';
 import '../widgets/snapdark/dashboard_cards.dart';
+import '../widgets/snapdark/golden_lion_background.dart';
 import '../widgets/snapdark/theme_toggle.dart';
 import '../widgets/snapdark/ad_banner.dart';
 import '../widgets/ui/snapdark_controls.dart';
@@ -959,6 +960,29 @@ class _SnapDarkHomeScreenState extends State<SnapDarkHomeScreen> {
         ? size.height >= 640
         : size.height >= 700;
 
+    // Full-screen golden-lion backdrop stack (video + scrim, see
+    // GoldenLionBackground). The dashboard renders INSIDE GoldenLionScope,
+    // which flips the shared cards to their glass treatment — a faint white
+    // wash with a golden hairline — so the 3D background shines through
+    // every panel. The old opaque page gradient no longer paints here: the
+    // backdrop owns that plane (video/painterly fallback + dark-golden scrim
+    // + theme veil), keeping text readable in BOTH themes without hiding
+    // the lion.
+    Widget withLionBackdrop(Widget dashboard, {bool shockwave = false}) =>
+        Stack(
+          fit: StackFit.expand,
+          children: [
+            const GoldenLionBackground(),
+            GoldenLionScope(enabled: true, child: dashboard),
+            if (shockwave)
+              // ABOVE the dashboard (pointer-transparent): when the tunnel
+              // comes up, golden flash + shock rings sweep across the whole
+              // screen — the roar moment the dial scene can't reach from
+              // inside its own circle. Idle: no ticker runs.
+              GoldenLionShockwaveOverlay(isConnected: vpn.isConnected),
+          ],
+        );
+
     if (vpn.hasError) {
       Widget errorBody = Column(
         children: [
@@ -1013,15 +1037,8 @@ class _SnapDarkHomeScreenState extends State<SnapDarkHomeScreen> {
       );
       return Scaffold(
         backgroundColor: t.scaffoldBg,
-        body: DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: t.pageGradient,
-            ),
-          ),
-          child: SafeArea(
+        body: withLionBackdrop(
+          SafeArea(
             bottom: false,
             child: Center(
               child: ConstrainedBox(
@@ -1222,19 +1239,12 @@ class _SnapDarkHomeScreenState extends State<SnapDarkHomeScreen> {
 
     return Scaffold(
       backgroundColor: t.scaffoldBg,
-      body: DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: t.pageGradient,
-          ),
-        ),
-        // Fixed dashboard — apps don't scroll. The dial sits in an Expanded
-        // and absorbs whatever space is left, so every screen size fits
-        // without a scrollbar.
-        child: body,
-      ),
+      // Fixed dashboard — apps don't scroll. The dial sits in an Expanded
+      // and absorbs whatever space is left, so every screen size fits
+      // without a scrollbar. The golden-lion backdrop (video + scrim) sits
+      // behind everything; the shockwave overlay rides on top for the
+      // connect-success moment.
+      body: withLionBackdrop(body, shockwave: true),
     );
   }
 }
