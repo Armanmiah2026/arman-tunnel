@@ -10,51 +10,49 @@ import 'golden_lion_dial.dart';
 /// Full-screen golden-lion backdrop for the home dashboard.
 ///
 /// Layer order (bottom → top):
-///  1. the looping 3D golden-lion video (assets/animations/3d_golden_lion.mp4)
-///     painted through a FittedBox(BoxFit.cover) so it always fills the whole
-///     screen — status bar edge to bottom navigation bar;
-///  2. a painterly golden-jungle fallback shown while the video initializes,
-///     when the asset has not been dropped in yet, or when the platform
-///     cannot play video (widget tests, very old devices);
-///  3. a dark-golden readability scrim plus a theme veil, so header text,
+///  1. a painterly golden-jungle safety net, shown only if the poster art
+///     itself cannot load;
+///  2. the STILL poster (assets/animations/golden_lion_poster.jpg),
+///     cover-fitted — what the owner sees whenever the tunnel is down: a
+///     frozen frame of the lion, so the background always looks real;
+///  3. the looping 3D golden-lion video (assets/animations/3d_golden_lion.mp4)
+///     — created and played ONLY once Connect is tapped (owner request:
+///     nothing moves before that), crossfading out again on disconnect;
+///  4. a dark-golden readability scrim plus a theme veil, so header text,
 ///     cards and buttons stay legible over any video frame while the 3D
 ///     lion keeps shining through.
 ///
-/// The video is a loop and cannot sync to VPN state, so the connection
-/// MOMENT is sold by [GoldenLionShockwaveOverlay] (placed above the
-/// dashboard): when the tunnel comes up it fires a golden flash + shock
-/// rings + sparks across the entire screen. The connect dial keeps its own
-/// running / roar / pride lion scene inside the button.
+/// The connection MOMENT is sold by [GoldenLionShockwaveOverlay] (placed
+/// above the dashboard): when the tunnel comes up it fires a golden flash +
+/// shock rings + sparks across the entire screen — the connect dial itself
+/// stays a plain static button.
 ///
-/// Lifecycle discipline: the controller is created, initialized, looped,
-/// muted and played in [initState] with mounted guards; init failures
-/// degrade to the fallback (never a red screen); the platform player is
-/// released exactly once in [dispose]; playback pauses while the app is
-/// backgrounded and resumes on return.
+/// Lifecycle discipline: no video work at app open; the controller is
+/// created lazily on the first connect, looped, volume-set from Settings
+/// and played with mounted guards; init failures degrade to the poster and
+/// painterly net (never a red screen); the platform player is released
+/// exactly once in [dispose]; playback pauses while the app is backgrounded
+/// and resumes on return — but only while the tunnel is up.
 class GoldenLionBackground extends StatefulWidget {
   const GoldenLionBackground(
       {super.key, this.isConnected = false, this.soundVolume = 1.0});
 
-  /// Whether the tunnel is UP. Drives the loop's tempo: the idle lion
-  /// sprints to invite the tap, the connected lion runs at natural pace.
+  /// Whether the tunnel is UP. The video starts on the false→true edge and
+  /// pauses (poster takes over) on the true→false edge.
   final bool isConnected;
 
   /// Background sound volume from Settings (0..1), applied to the video.
   final double soundVolume;
 
   /// The bundled loop. Drop the owner's render here (see the note in
-  /// assets/animations/): the widget degrades to the painterly fallback
-  /// until the file exists, so the repo always builds and runs.
+  /// assets/animations/): the widget degrades to the poster and painterly
+  /// fallback until the file exists, so the repo always builds and runs.
   static const String videoAsset = 'assets/animations/3d_golden_lion.mp4';
 
-  /// Playback speed while the tunnel is DOWN (owner request: "if I don't
-  /// click, lion run fast"). The idle lion sprints to invite the tap; the
-  /// moment the tunnel comes up it settles to [connectedSpeed] so the loop
-  /// reads as calm, established power.
-  static const double idleSpeed = 1.6;
-
-  /// Playback speed once connected — the clip's natural tempo.
-  static const double connectedSpeed = 1.0;
+  /// One frozen frame of the loop — the disconnected background. Extracted
+  /// from [videoAsset] (see assets/animations/README.md).
+  static const String posterAsset =
+      'assets/animations/golden_lion_poster.jpg';
 
   @override
   State<GoldenLionBackground> createState() => _GoldenLionBackgroundState();
@@ -62,66 +60,84 @@ class GoldenLionBackground extends StatefulWidget {
 
 class _GoldenLionBackgroundState extends State<GoldenLionBackground>
     with WidgetsBindingObserver {
-  late final VideoPlayerController _video;
+  /// Created lazily on the first connect — null until then (owner request:
+  /// the video starts playing only when Connect is pressed).
+  VideoPlayerController? _video;
   bool _ready = false;
   bool _failed = false;
+  bool _starting = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _video = VideoPlayerController.asset(GoldenLionBackground.videoAsset);
-    unawaited(_initVideo());
+    // Deliberately NO video work here: the still poster covers the screen
+    // until the owner taps Connect.
   }
 
-  Future<void> _initVideo() async {
+  /// First connect: create + initialize + loop + volume + play. Later
+  /// reconnects just resume the existing player.
+  Future<void> _startVideo() async {
+    if (_failed || _starting) return;
+    final existing = _video;
+    if (existing != null) {
+      if (_ready) unawaited(existing.play());
+      return; // still initializing — the boot sequence below will play.
+    }
+    _starting = true;
     try {
-      await _video.initialize();
+      final v = VideoPlayerController.asset(GoldenLionBackground.videoAsset);
+      _video = v;
+      await v.initialize();
       if (!mounted) return;
-      await _video.setLooping(true);
-      await _video.setVolume(widget.soundVolume); // Settings: Background Sound
-      // Idle lion runs fast (see [GoldenLionBackground.idleSpeed]).
-      await _video.setPlaybackSpeed(
-        widget.isConnected
-            ? GoldenLionBackground.connectedSpeed
-            : GoldenLionBackground.idleSpeed,
-      );
-      await _video.play();
+      await v.setLooping(true);
+      await v.setVolume(widget.soundVolume); // Settings: Background Sound
       if (!mounted) return;
-      setState(() => _ready = true);
+      if (widget.isConnected) await v.play();
+      if (!mounted) return;
+      setState(() {
+        _ready = true;
+        _starting = false;
+      });
     } catch (_) {
       // Missing asset, unsupported codec, or no platform player at all
-      // (widget tests). The painterly fallback IS the design in that case —
-      // the app keeps its golden look and never surfaces an error.
-      if (mounted) setState(() => _failed = true);
+      // (widget tests). The poster + painterly net IS the design in that
+      // case — the app keeps its golden look and never surfaces an error.
+      if (mounted) {
+        setState(() {
+          _failed = true;
+          _starting = false;
+        });
+      }
     }
   }
 
   @override
   void didUpdateWidget(covariant GoldenLionBackground old) {
     super.didUpdateWidget(old);
-    if (old.isConnected != widget.isConnected && _ready) {
-      // Tap Connect → the sprinting lion eases to its natural pace as the
-      // tunnel comes up (and back to fast if it drops).
-      unawaited(_video.setPlaybackSpeed(
-        widget.isConnected
-            ? GoldenLionBackground.connectedSpeed
-            : GoldenLionBackground.idleSpeed,
-      ));
+    if (old.isConnected != widget.isConnected) {
+      if (widget.isConnected) {
+        // Tap Connect → the lion video starts (or resumes).
+        unawaited(_startVideo());
+      } else if (_ready) {
+        // Disconnect → freeze; the still poster takes over again.
+        unawaited(_video!.pause());
+      }
     }
     if (old.soundVolume != widget.soundVolume && _ready) {
       // Settings → Background Sound −/+ takes effect live.
-      unawaited(_video.setVolume(widget.soundVolume));
+      unawaited(_video!.setVolume(widget.soundVolume));
     }
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (!_ready) return;
+    // Nothing plays while disconnected, so there is nothing to pause there.
+    if (!_ready || !widget.isConnected) return;
     if (state == AppLifecycleState.resumed) {
-      _video.play();
+      _video!.play();
     } else {
-      _video.pause();
+      _video!.pause();
     }
   }
 
@@ -134,8 +150,9 @@ class _GoldenLionBackgroundState extends State<GoldenLionBackground>
     // that state there is no native player to release, so we skip it
     // deliberately. Success → full teardown; in-flight init → teardown
     // completes the moment creation lands.
-    if (!_failed) {
-      unawaited(_video.dispose());
+    final v = _video;
+    if (v != null && !_failed) {
+      unawaited(v.dispose());
     }
     super.dispose();
   }
@@ -143,7 +160,7 @@ class _GoldenLionBackgroundState extends State<GoldenLionBackground>
   /// Video aspect ratio with a safe default — VideoPlayerValue reports
   /// 0/0 = NaN before the first frame, which would poison FittedBox.
   double get _aspect {
-    final ar = _video.value.aspectRatio;
+    final ar = _video?.value.aspectRatio ?? 0;
     return ar.isFinite && ar > 0 ? ar : 16 / 9;
   }
 
@@ -154,24 +171,36 @@ class _GoldenLionBackgroundState extends State<GoldenLionBackground>
     return Stack(
       fit: StackFit.expand,
       children: [
-        // ---- 1. the video, cover-fitted to the whole screen -------------
-        if (_ready && _video.value.isInitialized)
-          ClipRect(
-            child: FittedBox(
-              fit: BoxFit.cover,
-              clipBehavior: Clip.hardEdge,
-              child: SizedBox(
-                // Any box with the video's ratio works: FittedBox scales it
-                // up to cover and crops the overflow.
-                width: _aspect * 720,
-                height: 720,
-                child: VideoPlayer(_video),
+        // ---- 1. painterly safety net (deepest layer) --------------------
+        const _GoldenJungleFallback(),
+        // ---- 2. the STILL poster: the disconnected state of the bg -------
+        Image.asset(
+          GoldenLionBackground.posterAsset,
+          key: const Key('goldenLionPoster'),
+          fit: BoxFit.cover,
+          // Missing poster → the painterly layer below simply shows through.
+          errorBuilder: _ignorePosterError,
+        ),
+        // ---- 3. the video: exists only after Connect, cover-fitted -------
+        if (_ready && _video!.value.isInitialized)
+          AnimatedOpacity(
+            opacity: widget.isConnected ? 1 : 0,
+            duration: SnapDarkTokens.slow,
+            curve: Curves.easeOut,
+            child: ClipRect(
+              child: FittedBox(
+                fit: BoxFit.cover,
+                clipBehavior: Clip.hardEdge,
+                child: SizedBox(
+                  // Any box with the video's ratio works: FittedBox scales
+                  // it up to cover and crops the overflow.
+                  width: _aspect * 720,
+                  height: 720,
+                  child: VideoPlayer(_video!),
+                ),
               ),
             ),
-          )
-        // ---- 2. painterly golden-jungle fallback ------------------------
-        else
-          const _GoldenJungleFallback(),
+          ),
         // ---- 3a. dark-golden readability scrim --------------------------
         const DecoratedBox(
           decoration: BoxDecoration(
@@ -218,9 +247,16 @@ class _GoldenLionBackgroundState extends State<GoldenLionBackground>
   }
 }
 
-/// Painterly golden-jungle dusk used whenever the video cannot play: a deep
-/// black-gold radial sky over a warm path-glow — the same palette as the
-/// dial's [LionGold], so the app reads as one scene at every zoom level.
+/// Swallows poster load/decode errors: the painterly layer below simply
+/// stays visible, and widget tests never see an asset exception.
+Widget _ignorePosterError(
+        BuildContext context, Object error, StackTrace? stackTrace) =>
+    const SizedBox.shrink();
+
+/// Painterly golden-jungle dusk — the deepest layer, visible whenever both
+/// the poster and the video are unavailable: a deep black-gold radial sky
+/// over a warm path-glow — the same palette as [LionGold], so the app reads
+/// as one scene at every zoom level.
 class _GoldenJungleFallback extends StatelessWidget {
   const _GoldenJungleFallback();
 

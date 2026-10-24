@@ -976,8 +976,8 @@ class _SnapDarkHomeScreenState extends State<SnapDarkHomeScreen> {
         Stack(
           fit: StackFit.expand,
           children: [
-            // The idle lion sprints (fast loop); it eases to natural tempo
-            // once the tunnel is up — see GoldenLionBackground.idleSpeed.
+            // The lion video stays a still poster until the tunnel is UP —
+            // it starts playing on the first Connect tap (owner request).
             GoldenLionBackground(
               isConnected: vpn.isConnected,
               soundVolume: settings.bgVolume,

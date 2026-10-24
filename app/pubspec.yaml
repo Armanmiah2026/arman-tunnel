@@ -1,6 +1,6 @@
 name: snapdark_tunnel
 description: SnapDark Tunnel - A powerful VPN client based on Xray-core
-version: 1.0.61+67
+version: 1.0.62+68
 
 environment:
   sdk: '>=3.0.0 <4.0.0'

@@ -3,97 +3,57 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:snapdark_tunnel/theme/snapdark_theme.dart';
 import 'package:snapdark_tunnel/widgets/snapdark/connection_area.dart';
-import 'package:snapdark_tunnel/widgets/snapdark/golden_lion_dial.dart';
 
-/// Golden-lion connect animation regression suite.
+/// Connect-dial regression suite.
 ///
-/// Locks the three-phase story of the dial's inner scene:
-///   connecting → lion runs through the golden jungle
-///   success    → one-shot roar burst (aura wave), then…
-///   connected  → lion runs on with the pride (companions fade in)
-///
-/// NOTE: the scene intentionally runs an infinite ticker while busy/connected,
-/// so these tests pump fixed durations — never pumpAndSettle.
+/// The dial face is deliberately STATIC (owner request): a plain power icon
+/// on the glass / accent circle. The golden-lion animation was removed from
+/// the button entirely — the lion lives only in the full-screen background
+/// video, which starts on Connect.
 void main() {
   Widget host(Widget child) => MaterialApp(
         theme: SnapDarkTheme.dark,
-        home: Scaffold(body: Center(child: SizedBox(width: 244, height: 244, child: child))),
+        home: Scaffold(
+            body: Center(
+                child: SizedBox(width: 244, height: 244, child: child))),
       );
 
-  GoldenLionSceneState sceneOf(WidgetTester tester) =>
-      tester.state<GoldenLionSceneState>(find.byType(GoldenLionScene));
-
-  testWidgets('scene stays idle (no ticker) while disconnected',
-      (tester) async {
-    await tester.pumpWidget(
-      host(const GoldenLionScene(isConnected: false, isConnecting: false)),
-    );
-    await tester.pump();
-    expect(sceneOf(tester).phase, LionScenePhase.idle);
-    // Idle must not burn battery: no frame scheduled by the scene.
-    expect(tester.binding.hasScheduledFrame, isFalse);
-  });
-
-  testWidgets('connecting runs the lion; success roars then joins the pride',
-      (tester) async {
-    await tester.pumpWidget(
-      host(const GoldenLionScene(isConnected: false, isConnecting: true)),
-    );
-    await tester.pump();
-    expect(sceneOf(tester).phase, LionScenePhase.connecting);
-
-    // Tunnel comes up → the one-shot roar fires exactly once.
-    await tester.pumpWidget(
-      host(const GoldenLionScene(isConnected: true, isConnecting: false)),
-    );
-    await tester.pump();
-    expect(sceneOf(tester).phase, LionScenePhase.roar);
-
-    // Roar is a 1.5s burst; after it the scene settles into connected.
-    await tester.pump(const Duration(milliseconds: 1600));
-    expect(sceneOf(tester).phase, LionScenePhase.connected);
-
-    // Disconnect → back to idle.
-    await tester.pumpWidget(
-      host(const GoldenLionScene(isConnected: false, isConnecting: false)),
-    );
-    await tester.pump();
-    expect(sceneOf(tester).phase, LionScenePhase.idle);
-  });
-
-  testWidgets('restored session skips the roar and shows the pride',
-      (tester) async {
-    // App reopened while already connected: no fresh-connect burst.
-    await tester.pumpWidget(
-      host(const GoldenLionScene(isConnected: true, isConnecting: false)),
-    );
-    await tester.pump();
-    expect(sceneOf(tester).phase, LionScenePhase.connected);
-    await tester.pump(const Duration(milliseconds: 100));
-    // Still connected — the roar never fired.
-    expect(sceneOf(tester).phase, LionScenePhase.connected);
-  });
-
-  testWidgets('dial crossfades the scene in while busy and paints at every '
-      'state without exceptions', (tester) async {
-    for (final state in const [false, true]) {
-      await tester.pumpWidget(
-        host(
-          SnapDarkConnectionDial(
-            isConnected: state,
-            isConnecting: !state,
-            durationText: state ? '00:01:00' : '00:00:00',
-            caption: 'server',
-            onToggleConnect: () {},
-          ),
-        ),
+  SnapDarkConnectionDial dial({required bool connected}) =>
+      SnapDarkConnectionDial(
+        isConnected: connected,
+        isConnecting: false,
+        durationText: connected ? '00:01:00' : '00:00:00',
+        caption: 'server',
+        onToggleConnect: () {},
       );
+
+  testWidgets(
+      'dial face is a static power icon at every state — no scene, no '
+      'animation inside the button', (tester) async {
+    for (final connected in const [false, true]) {
+      await tester.pumpWidget(host(dial(connected: connected)));
       await tester.pump(const Duration(milliseconds: 400));
       expect(tester.takeException(), isNull);
-      expect(find.byType(GoldenLionScene), findsOneWidget);
-      // Owner request: no power-icon badge over the lion — the scene IS
-      // the button (the full circle stays tappable).
-      expect(find.byIcon(Icons.power_settings_new_rounded), findsNothing);
+      expect(find.byIcon(Icons.power_settings_new_rounded), findsOneWidget);
+      expect(find.text(connected ? 'CONNECTED' : 'TAP TO CONNECT'),
+          findsOneWidget);
     }
+  });
+
+  testWidgets('the static dial is still a working button', (tester) async {
+    var taps = 0;
+    await tester.pumpWidget(host(
+      SnapDarkConnectionDial(
+        isConnected: false,
+        isConnecting: false,
+        durationText: '00:00:00',
+        caption: 'server',
+        onToggleConnect: () => taps++,
+      ),
+    ));
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.tap(find.byIcon(Icons.power_settings_new_rounded));
+    expect(taps, 1);
+    expect(tester.takeException(), isNull);
   });
 }

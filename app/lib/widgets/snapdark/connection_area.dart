@@ -14,12 +14,10 @@ import 'golden_lion_dial.dart';
 ///   connecting → bright mint, ring sweeps
 ///   connected  → accent, ring full + slow pulse
 ///
-/// Inside the dial circle, a majestic golden-lion scene (see
-/// [GoldenLionScene]) crossfades in while the tunnel is busy or up:
-/// connecting → the lion sprints through a glowing golden jungle; the
-/// instant the tunnel comes up it plants its feet and ROARS with an expanding
-/// golden aura wave; connected → it runs on with a golden pride (deer, tiger,
-/// leopard). Idle shows the original glass dial, unchanged.
+/// The dial face itself is deliberately STATIC: a plain power icon on the
+/// glass/accent circle (owner request — the lion animation lives full-screen
+/// in the background video, not inside the button). The whole 150dp circle
+/// remains the tap target.
 class SnapDarkConnectionDial extends StatefulWidget {
   final bool isConnected;
   final bool isConnecting;
@@ -286,7 +284,6 @@ class _DialButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.tokens;
-    final busy = connecting || connected;
     return Semantics(
       button: true,
       label: connected ? 'Disconnect' : 'Connect',
@@ -332,30 +329,17 @@ class _DialButton extends StatelessWidget {
                   ]
                 : null,
           ),
-          // The golden-lion scene fills the dial circle while busy/up, and
-          // crossfades out to the plain glass fill at idle (AnimatedOpacity
-          // keeps one subtree alive — no rebuild churn on state flips).
-          //
-          // Owner request: no power-icon badge over the lion — the scene is
-          // the button. The whole 150dp circle remains the tap target
-          // (the GestureDetector wraps this container), so nothing is lost.
-          child: ClipOval(
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                Positioned.fill(
-                  child: AnimatedOpacity(
-                    opacity: busy ? 1 : 0,
-                    duration: SnapDarkTokens.slow,
-                    curve: Curves.easeOut,
-                    child: GoldenLionScene(
-                      isConnected: connected,
-                      isConnecting: connecting,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+          // Static face: a plain power icon on the glass/accent circle —
+          // no animation inside the button (owner request). The golden-lion
+          // video owns the full-screen background instead.
+          child: Icon(
+            Icons.power_settings_new_rounded,
+            size: 30,
+            color: connected
+                ? LionGold.bright
+                : connecting
+                    ? t.accentBright
+                    : t.textSecondary,
           ),
         ),
       ),

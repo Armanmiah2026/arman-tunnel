@@ -9,27 +9,30 @@ import 'package:video_player_platform_interface/video_player_platform_interface.
 
 /// The golden-lion backdrop must be bullet-proof in every environment: in
 /// widget tests (and on any device that cannot play the bundled loop) the
-/// video platform layer fails, and the widget has to fall back to its
-/// painterly golden-jungle gradient — never a red screen, never a stuck
-/// ticker after the test ends. The flip side of that coin (a platform that
-/// CAN play) proves the video actually plays: looped, sound on, sprinting
-/// while idle, paused when backgrounded, released exactly once on dispose.
+/// video platform layer fails, and the widget has to sit on its still poster
+/// + painterly golden-jungle net — never a red screen, never a stuck ticker
+/// after the test ends. The flip side (a platform that CAN play) proves the
+/// owner's rule: NOTHING plays until Connect is pressed — then the loop runs
+/// (sound on, Settings volume live), freezes on disconnect, resumes on
+/// reconnect, pauses while backgrounded, and is released exactly once.
 void main() {
   testWidgets(
-      'background falls back to the painterly golden jungle when video is unavailable',
-      (tester) async {
+      'disconnected background shows the still poster over the painterly '
+      'net — no video attempt, no red screen', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
         theme: SnapDarkTheme.dark,
         home: const Scaffold(body: GoldenLionBackground()),
       ),
     );
-    // Video init fails asynchronously (no platform player in tests); give
-    // the catch path a couple of frames to settle into the fallback.
+    // Give async image resolution a couple of frames to settle.
     await tester.pump(const Duration(milliseconds: 100));
     await tester.pump(const Duration(milliseconds: 100));
 
+    expect(find.byKey(const Key('goldenLionPoster')), findsOneWidget);
     expect(find.byKey(const Key('goldenLionFallback')), findsOneWidget);
+    // No platform player is ever touched while disconnected.
+    expect(find.byKey(const Key('goldenLionVideoSurface')), findsNothing);
     expect(tester.takeException(), isNull);
   });
 
@@ -85,9 +88,9 @@ void main() {
   });
 
   testWidgets(
-      'when a platform player is available the golden lion video PLAYS: '
-      'looped, sound on, sprinting when idle, paused when backgrounded, '
-      'released exactly once on dispose', (tester) async {
+      'the golden lion video starts ONLY on Connect: looped, sound on, '
+      'frozen on disconnect, resumed on reconnect, released exactly once '
+      'on dispose', (tester) async {
     final previous = VideoPlayerPlatform.instance;
     final fake = _FakeVideoPlayerPlatform();
     VideoPlayerPlatform.instance = fake;
@@ -104,39 +107,47 @@ void main() {
           ),
         );
 
+    // App open (disconnected): the still poster IS the background and the
+    // platform layer is not touched — no player is even created.
     await tester.pumpWidget(scene());
-    // Flush the async init chain: create → initialized event → loop /
-    // volume / speed → play → setState(_ready). Bounded pumps only while
-    // the video plays: the controller runs a 100ms position timer whose
-    // updates the VideoPlayer widget repaints, so pumpAndSettle would
-    // never settle.
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(fake.calls, isEmpty);
+    expect(find.byKey(const Key('goldenLionPoster')), findsOneWidget);
+    expect(find.byKey(const Key('goldenLionVideoSurface')), findsNothing);
+
+    // TAP CONNECT → the loop boots: create → initialized event → loop /
+    // volume → play → setState(_ready). Bounded pumps only while the video
+    // plays: the controller runs a 100ms position timer whose updates the
+    // VideoPlayer widget repaints, so pumpAndSettle would never settle.
+    await tester.pumpWidget(scene(connected: true));
     await tester.pump(const Duration(milliseconds: 50));
     await tester.pump(const Duration(milliseconds: 50));
     await tester.pump(const Duration(milliseconds: 50));
 
-    // The VIDEO layer renders — not the painterly fallback.
-    expect(find.byKey(const Key('goldenLionFallback')), findsNothing);
-    expect(find.byType(VideoPlayer), findsOneWidget);
-    expect(find.byKey(const Key('goldenLionVideoSurface')), findsOneWidget);
-
-    // It plays exactly the bundled asset, looping, at full volume (the
-    // owner's roar/music ships with the picture), sprinting while the
-    // tunnel is DOWN.
+    // The VIDEO layer renders over the poster — playing exactly the bundled
+    // asset, looping, at full volume (the owner's roar/music ships with it).
     expect(fake.calls, contains('create:${GoldenLionBackground.videoAsset}'));
     expect(fake.looping, isTrue);
     expect(fake.volume, 1.0);
-    expect(fake.speed, GoldenLionBackground.idleSpeed);
     expect(fake.playing, isTrue);
-
-    // Tunnel comes up → the loop settles to its natural tempo.
-    await tester.pumpWidget(scene(connected: true));
-    await tester.pump();
-    expect(fake.speed, GoldenLionBackground.connectedSpeed);
+    expect(find.byType(VideoPlayer), findsOneWidget);
+    expect(find.byKey(const Key('goldenLionVideoSurface')), findsOneWidget);
 
     // Settings → Background Sound −/+ takes effect live on the player.
     await tester.pumpWidget(scene(connected: true, soundVolume: 0.4));
     await tester.pump();
     expect(fake.volume, 0.4);
+
+    // DISCONNECT → playback freezes (the still poster takes over).
+    await tester.pumpWidget(scene());
+    await tester.pump();
+    expect(fake.playing, isFalse);
+
+    // RECONNECT → the same player resumes; no second one is ever created.
+    await tester.pumpWidget(scene(connected: true));
+    await tester.pump();
+    expect(fake.playing, isTrue);
+    expect(fake.calls.where((c) => c.startsWith('create:')).length, 1);
 
     // App backgrounded → playback stops (no sound, no battery burn in the
     // background); back to foreground → it resumes.
