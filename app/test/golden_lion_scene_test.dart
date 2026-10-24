@@ -91,7 +91,9 @@ void main() {
       await tester.pump(const Duration(milliseconds: 400));
       expect(tester.takeException(), isNull);
       expect(find.byType(GoldenLionScene), findsOneWidget);
-      expect(find.byIcon(Icons.power_settings_new_rounded), findsOneWidget);
+      // Owner request: no power-icon badge over the lion — the scene IS
+      // the button (the full circle stays tappable).
+      expect(find.byIcon(Icons.power_settings_new_rounded), findsNothing);
     }
   });
 }

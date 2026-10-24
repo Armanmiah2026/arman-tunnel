@@ -335,6 +335,10 @@ class _DialButton extends StatelessWidget {
           // The golden-lion scene fills the dial circle while busy/up, and
           // crossfades out to the plain glass fill at idle (AnimatedOpacity
           // keeps one subtree alive — no rebuild churn on state flips).
+          //
+          // Owner request: no power-icon badge over the lion — the scene is
+          // the button. The whole 150dp circle remains the tap target
+          // (the GestureDetector wraps this container), so nothing is lost.
           child: ClipOval(
             child: Stack(
               alignment: Alignment.center,
@@ -348,34 +352,6 @@ class _DialButton extends StatelessWidget {
                       isConnected: connected,
                       isConnecting: connecting,
                     ),
-                  ),
-                ),
-                // Translucent power badge on top of the scene, so the tap
-                // target still reads as a button over the running lion.
-                Container(
-                  width: 56,
-                  height: 56,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: (connected ? t.accentDeep : t.surfaceHigh)
-                        .withValues(alpha: 0.55),
-                    border: Border.all(
-                      color: connected
-                          ? LionGold.bright.withValues(alpha: 0.7)
-                          : connecting
-                              ? t.accentBright.withValues(alpha: 0.7)
-                              : t.border,
-                      width: 1.2,
-                    ),
-                  ),
-                  child: Icon(
-                    Icons.power_settings_new_rounded,
-                    size: 30,
-                    color: connected
-                        ? LionGold.bright
-                        : connecting
-                            ? t.accentBright
-                            : t.textSecondary,
                   ),
                 ),
               ],

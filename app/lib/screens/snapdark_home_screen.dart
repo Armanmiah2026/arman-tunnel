@@ -19,6 +19,7 @@ import '../services/settings_provider.dart';
 import '../services/vpn_service.dart';
 import '../theme/snapdark_theme.dart';
 import '../utils/format.dart';
+import '../utils/lion_roar.dart';
 import '../utils/user_error.dart';
 import '../widgets/app_toast.dart';
 import '../widgets/app_update_sheet.dart';
@@ -676,6 +677,9 @@ class _SnapDarkHomeScreenState extends State<SnapDarkHomeScreen> {
     final safe = await _ensureOvpnCreds(candidate, cfg);
     if (safe == null) return; // user cancelled the credentials prompt
     vpn.setConnecting(safe.displayName);
+    // THE roar: the dial has been tapped and the tunnel is genuinely going
+    // up. Fire-and-forget; audio failures must never stall the dial.
+    unawaited(LionRoar.instance.play());
 
     // The anchor first, then the failover pool: every OTHER compatible
     // server the admin published for this tweak's capability. One dead
@@ -972,7 +976,12 @@ class _SnapDarkHomeScreenState extends State<SnapDarkHomeScreen> {
         Stack(
           fit: StackFit.expand,
           children: [
-            const GoldenLionBackground(),
+            // The idle lion sprints (fast loop); it eases to natural tempo
+            // once the tunnel is up — see GoldenLionBackground.idleSpeed.
+            GoldenLionBackground(
+              isConnected: vpn.isConnected,
+              soundVolume: settings.bgVolume,
+            ),
             GoldenLionScope(enabled: true, child: dashboard),
             if (shockwave)
               // ABOVE the dashboard (pointer-transparent): when the tunnel

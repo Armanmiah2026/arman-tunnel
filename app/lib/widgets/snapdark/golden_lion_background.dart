@@ -32,12 +32,29 @@ import 'golden_lion_dial.dart';
 /// released exactly once in [dispose]; playback pauses while the app is
 /// backgrounded and resumes on return.
 class GoldenLionBackground extends StatefulWidget {
-  const GoldenLionBackground({super.key});
+  const GoldenLionBackground(
+      {super.key, this.isConnected = false, this.soundVolume = 1.0});
+
+  /// Whether the tunnel is UP. Drives the loop's tempo: the idle lion
+  /// sprints to invite the tap, the connected lion runs at natural pace.
+  final bool isConnected;
+
+  /// Background sound volume from Settings (0..1), applied to the video.
+  final double soundVolume;
 
   /// The bundled loop. Drop the owner's render here (see the note in
   /// assets/animations/): the widget degrades to the painterly fallback
   /// until the file exists, so the repo always builds and runs.
   static const String videoAsset = 'assets/animations/3d_golden_lion.mp4';
+
+  /// Playback speed while the tunnel is DOWN (owner request: "if I don't
+  /// click, lion run fast"). The idle lion sprints to invite the tap; the
+  /// moment the tunnel comes up it settles to [connectedSpeed] so the loop
+  /// reads as calm, established power.
+  static const double idleSpeed = 1.6;
+
+  /// Playback speed once connected — the clip's natural tempo.
+  static const double connectedSpeed = 1.0;
 
   @override
   State<GoldenLionBackground> createState() => _GoldenLionBackgroundState();
@@ -62,7 +79,13 @@ class _GoldenLionBackgroundState extends State<GoldenLionBackground>
       await _video.initialize();
       if (!mounted) return;
       await _video.setLooping(true);
-      await _video.setVolume(1.0); // the golden lion's roar/music ships with it
+      await _video.setVolume(widget.soundVolume); // Settings: Background Sound
+      // Idle lion runs fast (see [GoldenLionBackground.idleSpeed]).
+      await _video.setPlaybackSpeed(
+        widget.isConnected
+            ? GoldenLionBackground.connectedSpeed
+            : GoldenLionBackground.idleSpeed,
+      );
       await _video.play();
       if (!mounted) return;
       setState(() => _ready = true);
@@ -71,6 +94,24 @@ class _GoldenLionBackgroundState extends State<GoldenLionBackground>
       // (widget tests). The painterly fallback IS the design in that case —
       // the app keeps its golden look and never surfaces an error.
       if (mounted) setState(() => _failed = true);
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant GoldenLionBackground old) {
+    super.didUpdateWidget(old);
+    if (old.isConnected != widget.isConnected && _ready) {
+      // Tap Connect → the sprinting lion eases to its natural pace as the
+      // tunnel comes up (and back to fast if it drops).
+      unawaited(_video.setPlaybackSpeed(
+        widget.isConnected
+            ? GoldenLionBackground.connectedSpeed
+            : GoldenLionBackground.idleSpeed,
+      ));
+    }
+    if (old.soundVolume != widget.soundVolume && _ready) {
+      // Settings → Background Sound −/+ takes effect live.
+      unawaited(_video.setVolume(widget.soundVolume));
     }
   }
 

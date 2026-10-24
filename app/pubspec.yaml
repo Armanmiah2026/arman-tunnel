@@ -1,6 +1,6 @@
 name: snapdark_tunnel
 description: SnapDark Tunnel - A powerful VPN client based on Xray-core
-version: 1.0.60+66
+version: 1.0.61+67
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -25,17 +25,24 @@ dependencies:
   # degrades to a painterly fallback when the asset/platform can't play, so
   # this only adds capability, never a hard requirement.
   video_player: '>=2.9.0 <3.0.0'
+  # Connect-dial roar: one-shot low-latency playback of the bundled
+  # public-domain lion recording (see lib/utils/lion_roar.dart).
+  audioplayers: '>=6.0.0 <7.0.0'
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: '>=4.0.0 <7.0.0'
+  # Test-only: the fake platform that proves the video-PLAYS path.
+  # (video_player only re-exports a slice of this interface.)
+  video_player_platform_interface: '>=6.9.0 <7.0.0'
 
 flutter:
   uses-material-design: true
 
   assets:
     - assets/animations/
+    - assets/audio/
     - assets/images/snapdark_logo.png
     - assets/images/snapdark_mark.png
     - assets/images/snapdark_splash.png

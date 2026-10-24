@@ -151,6 +151,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
             : 'Off',
         onTap: () => _editWallpaper(context, s),
       ),
+      _SettingCard(
+        icon: Icons.volume_up_rounded,
+        title: 'Background Sound',
+        subtitle: 'Golden-lion video volume',
+        // The −/+ stepper in the trailing slot IS the control.
+        trailing: _VolumeStepper(
+          percent: (s.bgVolume * 100).round(),
+          onChanged: (p) => s.setBgVolume(p / 100),
+        ),
+      ),
     ];
   }
 
@@ -577,6 +587,66 @@ class _SettingCard extends StatelessWidget {
 /// accent (neon green on the dark palette); the other stays transparent
 /// with a muted icon. Track and border follow the glass tokens so it sits
 /// flush with the glassmorphism of the cards.
+/// Compact −/value/+ stepper for numeric settings (background volume).
+/// Steps in 10% increments; the ends clamp at 0% and 100%.
+class _VolumeStepper extends StatelessWidget {
+  const _VolumeStepper({required this.percent, required this.onChanged});
+
+  final int percent;
+  final ValueChanged<int> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    return Container(
+      padding: const EdgeInsets.all(2.5),
+      decoration: BoxDecoration(
+        color: t.surfaceAltFill,
+        borderRadius: SnapDarkTokens.brPill,
+        border: Border.all(color: t.border),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _step(context, Icons.remove_rounded,
+              percent <= 0 ? null : () => onChanged((percent - 10).clamp(0, 100))),
+          SizedBox(
+            width: 42,
+            child: Text(
+              '$percent%',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: t.text,
+              ),
+            ),
+          ),
+          _step(context, Icons.add_rounded,
+              percent >= 100 ? null : () => onChanged((percent + 10).clamp(0, 100))),
+        ],
+      ),
+    );
+  }
+
+  Widget _step(BuildContext context, IconData icon, VoidCallback? onTap) {
+    final t = context.tokens;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(999),
+      child: SizedBox(
+        width: 30,
+        height: 26,
+        child: Icon(
+          icon,
+          size: 14,
+          color: onTap == null ? t.textMuted : t.accentBright,
+        ),
+      ),
+    );
+  }
+}
+
 class _ThemeSegmented extends StatelessWidget {
   final ThemeMode mode;
   final ValueChanged<ThemeMode> onChanged;

@@ -53,6 +53,7 @@ class SettingsProvider extends ChangeNotifier {
   static const _kWallpaperCard = 'snapdark_wallpaper_card';
   static const _kWallpaperTitle = 'snapdark_wallpaper_title';
   static const _kWallpaperEnabled = 'snapdark_wallpaper_enabled';
+  static const _kBgVolume = 'snapdark_bg_volume';
   static const _kUserTweakTypes = 'snapdark_user_tweak_types';
 
   /// VIP unlock expiries: configId -> millisecond-epoch when the rewarded-ad
@@ -212,6 +213,7 @@ class SettingsProvider extends ChangeNotifier {
   double _wallpaperDim = 0.35;
   double _wallpaperBlur = 0.0;
   double _wallpaperCardOpacity = 0.55;
+  double _bgVolume = 1.0;
 
   /// Custom routing rules, in priority order. Each entry is
   /// {action: 'direct'|'block', value: '...'} — 'direct' bypasses the tunnel
@@ -314,6 +316,17 @@ class SettingsProvider extends ChangeNotifier {
   /// 0.2..1 card fill opacity in glass mode.
   double get wallpaperCardOpacity => _wallpaperCardOpacity;
 
+  /// Background golden-lion video volume, 0..1.
+  double get bgVolume => _bgVolume;
+
+  /// Sets the background golden-lion video volume (0..1) and persists it.
+  Future<void> setBgVolume(double v) async {
+    _bgVolume = v.clamp(0.0, 1.0);
+    final p = await SharedPreferences.getInstance();
+    await p.setDouble(_kBgVolume, _bgVolume);
+    notifyListeners();
+  }
+
   Future<void> setWallpaperLook({
     double? dim,
     double? blur,
@@ -374,6 +387,7 @@ class SettingsProvider extends ChangeNotifier {
     _wallpaperBlur = (p.getDouble(_kWallpaperBlur) ?? 0.0).clamp(0.0, 20.0);
     _wallpaperCardOpacity =
         (p.getDouble(_kWallpaperCard) ?? 0.55).clamp(0.2, 1.0);
+    _bgVolume = (p.getDouble(_kBgVolume) ?? 1.0).clamp(0.0, 1.0);
     _mtu = p.getInt(_kMtu) ?? 1500;
     _dnsServers = _loadDnsServers(p);
     _wakeLock = p.getBool(_kWakeLock) ?? false;
