@@ -62,7 +62,7 @@ class _GoldenLionBackgroundState extends State<GoldenLionBackground>
       await _video.initialize();
       if (!mounted) return;
       await _video.setLooping(true);
-      await _video.setVolume(0); // background art — never fight UI audio
+      await _video.setVolume(1.0); // the golden lion's roar/music ships with it
       await _video.play();
       if (!mounted) return;
       setState(() => _ready = true);
