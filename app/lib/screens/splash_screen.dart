@@ -7,7 +7,7 @@ import 'main_shell.dart';
 
 /// Boot screen — a seamless continuation of the NATIVE launch splash.
 ///
-/// The Android launch theme already paints `#0B0913` with the 200dp Arman
+/// The Android launch theme already paints `#0B0913` with the 200dp SnapDark
 /// lockup centered (drawable/snapdark_splash.png). This widget reproduces that
 /// exact frame (same colour, same asset, same size) and adds only the loading
 /// line underneath, so the user sees ONE screen — the logo they saw at tap,

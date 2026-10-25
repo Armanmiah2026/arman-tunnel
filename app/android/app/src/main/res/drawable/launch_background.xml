@@ -3,7 +3,7 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:drawable="@color/launcher_background" />
 
-    <!-- Arman lockup on the brand-dark splash background -->
+    <!-- SnapDark lockup on the brand-dark splash background -->
     <item>
         <bitmap
             android:gravity="center"
