@@ -440,6 +440,14 @@ class SnapDarkTunnelVpnService : VpnService() {
     private var sshProxyPort = 0
     private var serverAddress = ""
     private var serverPort = 443
+
+    /**
+     * Ordered SSH failover plan from the Dart side (primary port first,
+     * comma separated intent extra). Empty = fall back to [serverPort] only
+     * — the defaults live Dart-side so the engine never guesses.
+     */
+    private var sshPortList: List<Int> = emptyList()
+
     private var serverSni = ""
     private var injectModeName = "none"
     private var payloadTemplate = ""
@@ -653,6 +661,11 @@ class SnapDarkTunnelVpnService : VpnService() {
                 sshProxyPort = intent.getStringExtra("injectPort")?.toIntOrNull() ?: 0
                 serverAddress = intent.getStringExtra("address") ?: ""
                 serverPort = intent.getIntExtra("port", 443)
+                sshPortList = (intent.getStringExtra("sshPorts") ?: "")
+                    .split(',', ';', ' ')
+                    .mapNotNull { it.trim().toIntOrNull() }
+                    .filter { it in 1..65535 }
+                    .distinct()
                 serverSni = intent.getStringExtra("sni") ?: ""
                 injectModeName = intent.getStringExtra("injectMode") ?: "none"
                 payloadTemplate = intent.getStringExtra("payload") ?: ""
@@ -1696,63 +1709,214 @@ class SnapDarkTunnelVpnService : VpnService() {
         // endpoint. Only skip injection when there is genuinely nothing to do.
         val useInject = injectModeName.isNotBlank() &&
             injectModeName.lowercase() !in setOf("none", "dnstt")
-        val sshHost = if (dnsttActive) "127.0.0.1" else serverAddress
-        val sshPort = if (dnsttActive) dnsttLocalPort else serverPort
 
-        val connection: Connection
-        if (useInject) {
-            // Route the SSH stream through the local payload injector for DPI bypass.
-            val injector = PayloadInjector(
-                mode = PayloadInjector.modeFrom(injectModeName),
-                targetHost = sshHost,
-                targetPort = sshPort,
-                proxyHost = sshProxyHost,
-                proxyPort = sshProxyPort,
-                sni = serverSni,
-                payloadTemplate = payloadTemplate,
-                payloadEnhanced = payloadEnhanced,
-                tcpKeepaliveIdleSec = tcpKeepAliveIdleSec(),
-                socketProtector = { sock -> protect(sock) },
-            )
-            val localPort = injector.start()
-            payloadInjector = injector
-            connection = Connection("127.0.0.1", localPort)
-            connection.setCompression(sshCompression)
-            try {
-                connection.connect(null, 12000, 12000)
-            } catch (e: Throwable) {
-                // Walk the whole chain: the interesting failure is usually two or
-                // three levels down (a missing cipher class in release builds
-                // surfaced only as "Key exchange was not finished").
-                val chain = StringBuilder()
-                var cause = e.cause
-                var depth = 0
-                while (cause != null && depth < 6) {
-                    chain.append("; cause[").append(depth).append("]=")
-                        .append(cause.javaClass.simpleName).append(": ").append(cause.message)
-                    cause = cause.cause
-                    depth++
-                }
-                val msg = "SSH connect failed via injector: ${e.javaClass.simpleName}: ${e.message}$chain"
-                Log.e(TAG, msg, e)
-                emitLog(msg)
-                throw e
-            }
-            Log.i(
-                TAG,
-                "SSH via payload injector (mode=$injectModeName enhanced=$payloadEnhanced dnstt=$dnsttActive)"
+        // ---- Ordered dial plan -------------------------------------------
+        // dnstt owns its transport: the local dnstt port is the only reachable
+        // endpoint, so there is nothing to fail over to — keep a single dial.
+        // Otherwise walk every configured port (panels run plain OpenSSH and
+        // Dropbear on 443/80/109 as well as 22) and, per port, probe each
+        // front: plain SSH, stunnel (SSL/TLS 443), websocket (SSH WS 80) and
+        // websocket-in-TLS (SSH SSL WS 443). A configured payload injection
+        // pins the front — the panel already said which one it is — so only
+        // the port varies there.
+        val dials: List<SshDial> = if (dnsttActive) {
+            listOf(
+                SshDial(
+                    host = "127.0.0.1",
+                    port = dnsttLocalPort,
+                    transport = if (useInject) SshTransport.INJECT else SshTransport.PLAIN,
+                )
             )
         } else {
-            connection = Connection(sshHost, sshPort)
+            val ports = sshPortList.ifEmpty { listOf(serverPort) }
+            val transports = if (useInject) {
+                listOf(SshTransport.INJECT)
+            } else {
+                listOf(
+                    SshTransport.PLAIN,
+                    SshTransport.TLS,
+                    SshTransport.WS,
+                    SshTransport.WSS,
+                )
+            }
+            ports.flatMap { p -> transports.map { t -> SshDial(serverAddress, p, t) } }
+        }
+
+        var lastErr: Throwable? = null
+        var lastWhere = ""
+        var probedPort = -1
+        for ((index, dial) in dials.withIndex()) {
+            // A user Stop mid-walk must not keep dialing in the background.
+            if (!running.get()) {
+                throw IOException("SSH dial cancelled (session stopped)")
+            }
+            // One cheap TCP probe per PORT (not per transport): a filtered
+            // port would otherwise burn a full banner timeout on every front.
+            if (!dnsttActive && dial.port != probedPort) {
+                probedPort = dial.port
+                if (!tcpReachable(dial.host, dial.port)) {
+                    lastWhere = "port ${dial.port}"
+                    lastErr = IOException("port ${dial.port} not reachable")
+                    emitLog("SSH port ${dial.port}: not reachable (filtered/closed) — trying next")
+                    continue
+                }
+            }
+            var attemptConn: Connection? = null
+            var attemptInj: PayloadInjector? = null
+            try {
+                emitLog("SSH dial ${dial.host}:${dial.port} (${dial.transport.label})…")
+                val dialed = dialSsh(dial, index == 0)
+                attemptConn = dialed.first
+                attemptInj = dialed.second
+                val conn = dialed.first
+                if (sshCompression) Log.i(TAG, "SSH compression enabled")
+                if (dnsttActive && dial.transport == SshTransport.PLAIN) {
+                    Log.i(TAG, "SSH over DNSTT tunnel")
+                }
+                establishSsh(conn)
+
+                // Authenticated — wire it up before anything else can throw.
+                // Bind the SOCKS listener. Hotspot share ON binds all interfaces
+                // (0.0.0.0) so Wi-Fi clients can reach it; OFF binds loopback so
+                // only the app itself (via tun2socks -> 127.0.0.1:10808) can use
+                // it. NOTE: an all-interface bind is an unauthenticated proxy
+                // reachable by anyone on the same Wi-Fi while connected —
+                // intentional for hotspot sharing, but it is the reason to keep
+                // the tunnel off untrusted nets.
+                val bindHost = if (hotspotShare) "0.0.0.0" else "127.0.0.1"
+                sshForwarder = conn.createDynamicPortForwarder(
+                    InetSocketAddress(bindHost, 10808)
+                )
+                sshConnection = conn
+                Log.i(
+                    TAG,
+                    "SSH SOCKS started on 127.0.0.1:10808 (inject=$useInject " +
+                        "port=${dial.port} front=${dial.transport.label})"
+                )
+
+                // The app's own HTTP stack cannot speak SOCKS — give it the same
+                // local HTTP port xray exposes (10809) by bridging HTTP <-> SOCKS so
+                // app-internal requests (IP/location check, config refresh) ride the
+                // SSH tunnel instead of leaking out the physical interface.
+                try {
+                    val bridge = HttpSocksBridge(bindHost, 10809, "127.0.0.1", 10808)
+                    bridge.start()
+                    sshHttpBridge = bridge
+                    Log.i(TAG, "HTTP<->SOCKS bridge started on $bindHost:10809")
+                } catch (e: Exception) {
+                    Log.w(TAG, "HTTP<->SOCKS bridge failed: ${e.message}")
+                    emitLog("HTTP bridge failed: ${e.message} — app self-traffic may bypass the tunnel")
+                }
+
+                startDnsGateway()
+                emitLog(
+                    "SSH connected: port ${dial.port} via ${dial.transport.label} " +
+                        "(walked ${dials.map { it.port }.distinct()})"
+                )
+                return
+            } catch (e: SshAuthFailed) {
+                // The endpoint spoke SSH and rejected our credentials — other
+                // ports cannot fix that, so the walk stops right here.
+                killDial(attemptConn, attemptInj)
+                throw e
+            } catch (e: Throwable) {
+                killDial(attemptConn, attemptInj)
+                lastErr = e
+                lastWhere = "port ${dial.port} (${dial.transport.label})"
+                val msg = "SSH ${dial.port} (${dial.transport.label}) failed: ${e.chainMessage()}"
+                Log.w(TAG, msg, e)
+                emitLog(msg)
+            }
+        }
+        throw IOException(
+            "SSH: no route to $serverAddress — tried ports ${dials.map { it.port }.distinct()}; " +
+                "last failure at $lastWhere: ${lastErr?.message}"
+        )
+    }
+
+    /**
+     * One dial attempt: raw TCP for plain, the local relay for every wrapped
+     * front (trilead only dials raw TCP, so TLS/websocket wrapping happens in
+     * the injector and the engine talks to 127.0.0.1 as if it were the server).
+     */
+    private fun dialSsh(dial: SshDial, primary: Boolean): Pair<Connection, PayloadInjector?> {
+        // The primary attempt keeps today's generous 12 s budget; fallback
+        // attempts tighten it so a wrong-front deadlock (server waiting for a
+        // ClientHello while we wait for a banner) cannot stall the whole walk.
+        val timeout = if (primary) 12000 else 7000
+        if (dial.transport == SshTransport.PLAIN) {
+            val connection = Connection(dial.host, dial.port)
             connection.setCompression(sshCompression)
             if (!dnsttActive && sshProxyHost.isNotBlank() && sshProxyPort > 0) {
                 connection.setProxyData(HTTPProxyData(sshProxyHost, sshProxyPort))
             }
-            connection.connect(null, 12000, 12000)
-            if (dnsttActive) Log.i(TAG, "SSH over DNSTT tunnel")
+            connection.connect(null, timeout, timeout)
+            return connection to null
         }
-        if (sshCompression) Log.i(TAG, "SSH compression enabled")
 
+        val (mode, payload, sni) = when (dial.transport) {
+            // Blank payload + DIRECT_SNI + blank sni = a pure TLS wrapper
+            // (stunnel-style SSL/TLS 443). The blank sni matters: with a
+            // spoofed one the relay synthesises a WSS opener instead of
+            // piping raw bytes after the handshake.
+            SshTransport.TLS -> Triple(PayloadInjector.Mode.DIRECT_SNI, "", "")
+            // Websocket upgrade in cleartext (SSH WS 80).
+            SshTransport.WS -> Triple(
+                PayloadInjector.Mode.DIRECT,
+                wsUpgradePayload(),
+                serverSni,
+            )
+            // Websocket upgrade inside TLS (SSH SSL WS 443).
+            SshTransport.WSS -> Triple(
+                PayloadInjector.Mode.DIRECT_SNI,
+                wsUpgradePayload(),
+                serverSni,
+            )
+            // Panel-configured front (payload / DPI-bypass shares) — the
+            // transport is pinned by the config, only the port varies.
+            SshTransport.INJECT -> Triple(
+                PayloadInjector.modeFrom(injectModeName),
+                payloadTemplate,
+                serverSni,
+            )
+            SshTransport.PLAIN -> throw IllegalStateException("plain dial never reaches the relay")
+        }
+        val injector = PayloadInjector(
+            mode = mode,
+            targetHost = dial.host,
+            targetPort = dial.port,
+            proxyHost = sshProxyHost,
+            proxyPort = sshProxyPort,
+            sni = sni,
+            payloadTemplate = payload,
+            payloadEnhanced = payloadEnhanced,
+            tcpKeepaliveIdleSec = tcpKeepAliveIdleSec(),
+            socketProtector = { sock -> protect(sock) },
+        )
+        val localPort = injector.start()
+        // Publish before the dial so a user Stop during a slow failover still
+        // reaches this relay (stopVpn tears down `payloadInjector`).
+        payloadInjector = injector
+        val connection = Connection("127.0.0.1", localPort)
+        connection.setCompression(sshCompression)
+        try {
+            connection.connect(null, timeout, timeout)
+        } catch (e: Throwable) {
+            killDial(connection, injector)
+            throw e
+        }
+        return connection to injector
+    }
+
+    /**
+     * Monitor + credential check for a freshly dialled connection.
+     *
+     * A rejected login is NOT a port problem — the endpoint spoke SSH and
+     * completed key exchange — so it surfaces as [SshAuthFailed] and aborts
+     * the port walk instead of grinding through every other port with
+     * credentials the server has already rejected.
+     */
+    private fun establishSsh(connection: Connection) {
         connection.addConnectionMonitor(object : ConnectionMonitor {
             override fun connectionLost(reason: Throwable?) {
                 // Without this the stats watchdog had nothing to check for SSH
@@ -1778,42 +1942,66 @@ class SnapDarkTunnelVpnService : VpnService() {
             val msg = "SSH auth error: ${e.javaClass.simpleName}: ${e.message}"
             Log.e(TAG, msg, e)
             emitLog(msg)
-            connection.close()
-            throw e
+            throw SshAuthFailed(msg, e)
         }
         if (!authed) {
-            connection.close()
             emitLog("SSH authentication failed")
-            throw IOException("SSH authentication failed")
+            throw SshAuthFailed("SSH authentication failed")
         }
-        // Bind the SOCKS listener. Hotspot share ON binds all interfaces
-        // (0.0.0.0) so Wi-Fi clients can reach it; OFF binds loopback so only
-        // the app itself (via tun2socks -> 127.0.0.1:10808) can use it.
-        // NOTE: an all-interface bind is an unauthenticated proxy reachable by
-        // anyone on the same Wi-Fi while connected — intentional for hotspot
-        // sharing, but it is the reason to keep the tunnel off untrusted nets.
-        val bindHost = if (hotspotShare) "0.0.0.0" else "127.0.0.1"
-        sshForwarder = connection.createDynamicPortForwarder(
-            InetSocketAddress(bindHost, 10808)
-        )
-        sshConnection = connection
-        Log.i(TAG, "SSH SOCKS started on 127.0.0.1:10808 (inject=$useInject)")
+    }
 
-        // The app's own HTTP stack cannot speak SOCKS — give it the same
-        // local HTTP port xray exposes (10809) by bridging HTTP <-> SOCKS so
-        // app-internal requests (IP/location check, config refresh) ride the
-        // SSH tunnel instead of leaking out the physical interface.
+    /** Tear down one failed dial attempt: close the connection, stop its relay. */
+    private fun killDial(connection: Connection?, injector: PayloadInjector?) {
         try {
-            val bridge = HttpSocksBridge(bindHost, 10809, "127.0.0.1", 10808)
-            bridge.start()
-            sshHttpBridge = bridge
-            Log.i(TAG, "HTTP<->SOCKS bridge started on $bindHost:10809")
-        } catch (e: Exception) {
-            Log.w(TAG, "HTTP<->SOCKS bridge failed: ${e.message}")
-            emitLog("HTTP bridge failed: ${e.message} — app self-traffic may bypass the tunnel")
+            connection?.close()
+        } catch (_: Exception) {
         }
+        if (injector != null) {
+            try {
+                injector.stop()
+            } catch (_: Exception) {
+            }
+            if (payloadInjector === injector) payloadInjector = null
+        }
+    }
 
-        startDnsGateway()
+    /** True when a TCP handshake with host:port completes inside 4 seconds. */
+    private fun tcpReachable(host: String, port: Int): Boolean = try {
+        Socket().use { s ->
+            s.tcpNoDelay = true
+            s.connect(InetSocketAddress(host, port), 4000)
+            true
+        }
+    } catch (e: Exception) {
+        Log.i(TAG, "tcp probe $host:$port failed: ${e.javaClass.simpleName}: ${e.message}")
+        false
+    }
+
+    /**
+     * Standard websocket-upgrade opener for the WS/WSS fronts. `[host]`
+     * renders to the configured SNI/bug host (server address when blank);
+     * `[crlf]` is the injector's template line break.
+     */
+    private fun wsUpgradePayload(): String =
+        "GET / HTTP/1.1[crlf]Host: [host][crlf]Upgrade: websocket" +
+            "[crlf]Connection: Upgrade[crlf][crlf]"
+
+    /**
+     * Full cause chain on one line — the interesting failure is usually two
+     * or three levels down (a missing cipher class in release builds surfaced
+     * only as "Key exchange was not finished").
+     */
+    private fun Throwable.chainMessage(): String {
+        val chain = StringBuilder("${javaClass.simpleName}: $message")
+        var cause = cause
+        var depth = 0
+        while (cause != null && depth < 6) {
+            chain.append("; cause[").append(depth).append("]=")
+                .append(cause.javaClass.simpleName).append(": ").append(cause.message)
+            cause = cause.cause
+            depth++
+        }
+        return chain.toString()
     }
 
     /**
@@ -3084,3 +3272,31 @@ class SnapDarkTunnelVpnService : VpnService() {
         }
     }
 }
+
+/** One SSH dial attempt: which front carries the stream to the server. */
+private enum class SshTransport(val label: String) {
+    /** Raw TCP — plain OpenSSH / Dropbear, whatever port. */
+    PLAIN("plain"),
+    /** TLS wrapper with the server's own SNI (stunnel-style SSL/TLS 443). */
+    TLS("SSL/TLS"),
+    /** Websocket upgrade in cleartext (SSH WS 80). */
+    WS("WebSocket"),
+    /** Websocket upgrade inside TLS (SSH SSL WS 443). */
+    WSS("WSS"),
+    /** Panel-configured payload-injection front (pinned by the config). */
+    INJECT("payload-inject");
+}
+
+/** A single candidate of the SSH failover plan: host + port + front. */
+private data class SshDial(
+    val host: String,
+    val port: Int,
+    val transport: SshTransport,
+)
+
+/**
+ * The endpoint spoke SSH and rejected our credentials. Wrong ports cannot
+ * fix that, so this is the one failure the port failover does NOT retry past.
+ */
+private class SshAuthFailed(message: String, cause: Throwable? = null) :
+    IOException(message, cause)

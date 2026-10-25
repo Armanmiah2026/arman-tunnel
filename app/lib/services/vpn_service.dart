@@ -186,6 +186,11 @@ class VpnService {
             ? config.address
             : config.effectiveInjectHost,
         'sshPort': config.port,
+        // Ordered failover plan, primary port first. The engine walks this
+        // list — probing plain SSH / SSL-TLS / websocket per port — when the
+        // primary dial fails, so a blocked 22 is never the end of the road.
+        // Blank for non-SSH configs (nothing to fail over there).
+        'sshPorts': config.effectiveSshPorts.join(','),
         'payload': config.payload ?? '',
         'injectMode': config.injectMode.name,
         'injectHost': config.effectiveInjectHost,

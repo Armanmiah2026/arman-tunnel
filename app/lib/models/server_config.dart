@@ -45,6 +45,13 @@ const String kDefaultProxyHost = '[Default]';
 /// shows `80` as its placeholder).
 const String kDefaultProxyPort = '80';
 
+/// Ports the native SSH engine walks AFTER the config's own port when the
+/// primary dial fails. The panels behind this app run plain OpenSSH/Dropbear
+/// on 443/80/109 as well as 22, and front 443/80 with stunnel and websocket —
+/// any of them can carry the session, so a blocked 22 must not be the end of
+/// the road. A config carrying its own `fallbackPorts` list replaces this.
+const List<int> kSshDefaultFallbackPorts = [443, 80, 109, 22];
+
 class ServerConfig {
   final String id;
   final String name;
@@ -54,6 +61,11 @@ class ServerConfig {
   final SecurityType security;
   final String address;
   final int port;
+
+  /// Extra SSH dial ports, tried in order after [port] when the primary dial
+  /// fails. Empty = the built-in [kSshDefaultFallbackPorts]; an explicit list
+  /// of only `[port]` disables failover (primary port alone).
+  final List<int> fallbackPorts;
   final String uuid;
   final String? alterId;
   final String? password;
@@ -156,6 +168,7 @@ class ServerConfig {
     this.security = SecurityType.none,
     required this.address,
     required this.port,
+    this.fallbackPorts = const [],
     this.uuid = '',
     this.alterId,
     this.password,
@@ -242,6 +255,7 @@ this.capability,
     SecurityType? security,
     String? address,
     int? port,
+    List<int>? fallbackPorts,
     String? uuid,
     String? alterId,
     String? password,
@@ -302,6 +316,7 @@ this.capability,
       security: security ?? this.security,
       address: address ?? this.address,
       port: port ?? this.port,
+      fallbackPorts: fallbackPorts ?? this.fallbackPorts,
       uuid: uuid ?? this.uuid,
       alterId: alterId ?? this.alterId,
       password: password ?? this.password,
@@ -393,6 +408,22 @@ this.capability,
   /// True for modes handled by the native SSH engine (not xray).
   bool get isSshFamily =>
       protocol == ProtocolType.ssh || protocol == ProtocolType.sshDnstt;
+
+  /// The ordered SSH dial plan sent to the native engine: this config's own
+  /// [port] first, then the fallback ports — the explicit [fallbackPorts]
+  /// list when the config carries one, otherwise [kSshDefaultFallbackPorts].
+  /// Duplicates and out-of-range ports are dropped; empty for non-SSH
+  /// configs (nothing to fail over there).
+  List<int> get effectiveSshPorts {
+    if (!isSshFamily) return const [];
+    final ports = <int>[port];
+    final extra =
+        fallbackPorts.isEmpty ? kSshDefaultFallbackPorts : fallbackPorts;
+    for (final p in extra) {
+      if (p > 0 && p <= 65535 && !ports.contains(p)) ports.add(p);
+    }
+    return ports;
+  }
 
   /// True for the xray-driven V2Ray protocols.
   bool get isV2rayFamily =>
@@ -1810,6 +1841,20 @@ this.capability,
   static SecurityType parseSecurity(String s) => _parseSecurity(s);
   static int parsePort(dynamic value, int fallback) =>
       _parsePort(value, fallback);
+
+  /// `443,80` / `443;80` / `[443, 80]` / `443` → in-range port ints.
+  /// Anything unparseable or out of range is dropped — panel JSON, share
+  /// imports and hand-edited bundles all feed this, so it never throws.
+  static List<int> parsePortList(dynamic value) {
+    final parts = value is List
+        ? value.map((e) => e.toString().trim())
+        : value.toString().split(RegExp(r'[,;\s]+'));
+    return parts
+        .map((e) => int.tryParse(e) ?? 0)
+        .where((p) => p > 0 && p <= 65535)
+        .toList();
+  }
+
   static int? parseNullableInt(dynamic value) => _parseNullableInt(value);
   static InjectMode parseInjectMode(dynamic v) => _parseInjectMode(v);
 
@@ -2020,6 +2065,7 @@ this.capability,
         'security': security.name,
         'address': address,
         'port': port,
+        'fallbackPorts': fallbackPorts,
         'uuid': uuid,
         'alterId': alterId,
         'password': password,
@@ -2081,6 +2127,7 @@ this.capability,
         security: _parseSecurity(json['security'] ?? 'none'),
         address: json['address'] ?? '',
         port: _parsePort(json['port'], 443),
+        fallbackPorts: parsePortList(json['fallbackPorts']),
         uuid: json['uuid'] ?? '',
         alterId: json['alterId'],
         password: json['password'],

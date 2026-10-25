@@ -536,6 +536,8 @@ class MainActivity : FlutterActivity() {
             putExtra("dnsttResolver", str("dnsttResolver"))
             putExtra("address", str("sshHost").ifBlank { str("address") })
             putExtra("port", asInt(args["sshPort"] ?: args["port"], 443))
+            // Ordered SSH failover plan (primary first, comma separated).
+            putExtra("sshPorts", str("sshPorts"))
             // Per-config tunnel tweaks. These MUST be forwarded: the service
             // gates the V2Ray payload relay on `v2rayInject`, so dropping it
             // leaves xray dialling a dead local port (see toXrayConfig).
